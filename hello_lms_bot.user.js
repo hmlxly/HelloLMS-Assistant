@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Hello LMS 助手
 // @namespace    http://tampermonkey.net/
-// @version      6.15
-// @description  强制核验版：加入启动级强制云端版本比对，版本落后将触发Kill Switch黑屏锁死，强制要求更新
+// @version      6.16
+// @description  探针穿透版：使用 GM_xmlhttpRequest 重构底层雷达，无视CORS/CSP跨域拦截，实现100%静默传回
 // @author       Peng
 // @match        *://lms.cu.ac.kr/ilos/*
 // @match        *://www.youtube.com/embed/*
@@ -61,7 +61,7 @@
     // 🌟 【官方 OTA 云端通信通道】
     const UPDATE_API_URL = "https://raw.githubusercontent.com/hmlxly/HelloLMS-Assistant/refs/heads/main/hellolms_update.json"; 
     const ABOUT_API_URL = "https://raw.githubusercontent.com/hmlxly/HelloLMS-Assistant/refs/heads/main/about.txt"; 
-    const CURRENT_VERSION = 6.15; // 当前版本号
+    const CURRENT_VERSION = 6.16; 
     
     // 🌟 【探针配置】
     const GOOGLE_FORM_ID = "1FAIpQLSeHiB3ExQrJ53hz132Vl4lGU5QtTogIWiU7P5-UyUpXwO2KoQ";
@@ -69,9 +69,9 @@
     // ========================================================================
 
     const LANG_DB = {
-        cn: { title: "Hello LMS 助手 v6.15", start: "🚀 启动", stop: "⏸️ 停止", exp: "💾 导出", import: "📂 导入", cur: "当前项目", total: "总进度", run: "● 自动挂机中", pause: "○ 已停止", done: "✅ 已完成", todo: "⏳ 待学习", empty: "点击下方[📡 补满]开全图", watching: "▶ 正在看", hide: "收起", lock: "🔒锁定", log: "📝 操作审计日志", scan: "📡 补满", update: "🔄 更新", about: "ℹ️ 关于", reset: "🗑️ 重置", unlock: "立即解锁 (Enter)", err: "验证码无效", mute: "🔇 静音模式", unmute: "🔊 开启声音", scanning: "物理开图中...", scan_done: "✅ 上帝视角开启！", scan_err: "❌ 找不到周次", clear: "[免疫] 自动粉碎弹窗", manual: "用户手动操作", seek: "跳至记忆点", reset_msg: "确定要重置所有缓存数据吗？", import_ok: "✅ 导入成功！", import_err: "❌ 导入失败", rem: "剩余时长", eta: "预计完成", up_check: "连接云端...", up_new: "🚀 发现新版本 v", up_go: "是否前往下载？", up_none: "✅ 已是最新版本", up_fail: "❌ 连接失败", req_fail: "获取失败", req_time: "请求超时", force_title: "⚠️ 版本已过期", force_msg: "当前版本 (v{1}) 已停用，请强制更新至最新版本 (v{2}) 才能继续使用。", force_btn: "🚀 立即前往更新" },
-        en: { title: "Hello LMS Bot v6.15", start: "🚀 Start", stop: "⏸️ Stop", exp: "💾 Export", import: "📂 Import", cur: "Course", total: "Total", run: "● Running", pause: "○ Paused", done: "✅ Done", todo: "⏳ To-Do", empty: "Click [Scan] below", watching: "▶ Watching", hide: "Hide", lock: "🔒Lock", log: "📝 Audit Logs", scan: "📡 Scan", update: "🔄 Update", about: "ℹ️ About", reset: "🗑️ Reset", unlock: "Unlock (Enter)", err: "Invalid Code", mute: "🔇 Muted", unmute: "🔊 Unmuted", scanning: "Scanning...", scan_done: "✅ Scan Complete!", scan_err: "❌ No weeks found", clear: "[Auto] Popup killed", manual: "Manual stop", seek: "Seek to memory", reset_msg: "Reset all data?", import_ok: "✅ Import Success!", import_err: "❌ Import Failed", rem: "Remaining", eta: "ETA", up_check: "Checking...", up_new: "🚀 New version v", up_go: "Download now?", up_none: "✅ Up to date", up_fail: "❌ Connection failed", req_fail: "Load failed", req_time: "Timeout", force_title: "⚠️ Version Outdated", force_msg: "Current version (v{1}) is disabled. Please update to v{2}.", force_btn: "🚀 Update Now" },
-        kr: { title: "Hello LMS 봇 v6.15", start: "🚀 시작", stop: "⏸️ 정지", exp: "💾 내보내기", import: "📂 불러오기", cur: "현재과목", total: "총 진도", run: "● 자동재생 중", pause: "○ 정지됨", done: "✅ 완료됨", todo: "⏳ 학습예정", empty: "아래 [스캔] 클릭", watching: "▶ 시청중", hide: "숨기기", lock: "🔒잠금", log: "📝 작업 로그", scan: "📡 스캔", update: "🔄 업뎃", about: "ℹ️ 정보", reset: "🗑️ 초기화", unlock: "잠금해제 (Enter)", err: "코드 오류", mute: "🔇 음소거", unmute: "🔊 소리켜기", scanning: "스캔 중...", scan_done: "✅ 스캔 완료!", scan_err: "❌ 주차를 찾을 수 없음", clear: "[자동] 팝업 닫힘", manual: "수동 조작", seek: "이전 시점 이동", reset_msg: "모든 데이터를 초기화하시겠습니까?", import_ok: "✅ 불러오기 성공!", import_err: "❌ 불러오기 실패", rem: "남은시간", eta: "예상완료", up_check: "확인 중...", up_new: "🚀 새 버전 v", up_go: "지금 다운로드하시겠습니까?", up_none: "✅ 최신 버전입니다", up_fail: "❌ 연결 실패", req_fail: "불러오기 실패", req_time: "시간 초과", force_title: "⚠️ 버전 만료됨", force_msg: "현재 버전(v{1})의 지원이 중단되었습니다. 원활한 사용을 위해 v{2}(으)로 업데이트해 주세요.", force_btn: "🚀 지금 업데이트" }
+        cn: { title: "Hello LMS 助手 v6.16", start: "🚀 启动", stop: "⏸️ 停止", exp: "💾 导出", import: "📂 导入", cur: "当前项目", total: "总进度", run: "● 自动挂机中", pause: "○ 已停止", done: "✅ 已完成", todo: "⏳ 待学习", empty: "点击下方[📡 补满]开全图", watching: "▶ 正在看", hide: "收起", lock: "🔒锁定", log: "📝 操作审计日志", scan: "📡 补满", update: "🔄 更新", about: "ℹ️ 关于", reset: "🗑️ 重置", unlock: "立即解锁 (Enter)", err: "验证码无效", mute: "🔇 静音模式", unmute: "🔊 开启声音", scanning: "物理开图中...", scan_done: "✅ 上帝视角开启！", scan_err: "❌ 找不到周次", clear: "[免疫] 自动粉碎弹窗", manual: "用户手动操作", seek: "跳至记忆点", reset_msg: "确定要重置所有缓存数据吗？", import_ok: "✅ 导入成功！", import_err: "❌ 导入失败", rem: "剩余时长", eta: "预计完成", up_check: "连接云端...", up_new: "🚀 发现新版本 v", up_go: "是否前往下载？", up_none: "✅ 已是最新版本", up_fail: "❌ 连接失败", req_fail: "获取失败", req_time: "请求超时", force_title: "⚠️ 版本已过期", force_msg: "当前版本 (v{1}) 已停用，请强制更新至最新版本 (v{2}) 才能继续使用。", force_btn: "🚀 立即前往更新" },
+        en: { title: "Hello LMS Bot v6.16", start: "🚀 Start", stop: "⏸️ Stop", exp: "💾 Export", import: "📂 Import", cur: "Course", total: "Total", run: "● Running", pause: "○ Paused", done: "✅ Done", todo: "⏳ To-Do", empty: "Click [Scan] below", watching: "▶ Watching", hide: "Hide", lock: "🔒Lock", log: "📝 Audit Logs", scan: "📡 Scan", update: "🔄 Update", about: "ℹ️ About", reset: "🗑️ Reset", unlock: "Unlock (Enter)", err: "Invalid Code", mute: "🔇 Muted", unmute: "🔊 Unmuted", scanning: "Scanning...", scan_done: "✅ Scan Complete!", scan_err: "❌ No weeks found", clear: "[Auto] Popup killed", manual: "Manual stop", seek: "Seek to memory", reset_msg: "Reset all data?", import_ok: "✅ Import Success!", import_err: "❌ Import Failed", rem: "Remaining", eta: "ETA", up_check: "Checking...", up_new: "🚀 New version v", up_go: "Download now?", up_none: "✅ Up to date", up_fail: "❌ Connection failed", req_fail: "Load failed", req_time: "Timeout", force_title: "⚠️ Version Outdated", force_msg: "Current version (v{1}) is disabled. Please update to v{2}.", force_btn: "🚀 Update Now" },
+        kr: { title: "Hello LMS 봇 v6.16", start: "🚀 시작", stop: "⏸️ 정지", exp: "💾 내보내기", import: "📂 불러오기", cur: "현재과목", total: "총 진도", run: "● 자동재생 중", pause: "○ 정지됨", done: "✅ 완료됨", todo: "⏳ 학습예정", empty: "아래 [스캔] 클릭", watching: "▶ 시청중", hide: "숨기기", lock: "🔒잠금", log: "📝 작업 로그", scan: "📡 스캔", update: "🔄 업뎃", about: "ℹ️ 정보", reset: "🗑️ 초기화", unlock: "잠금해제 (Enter)", err: "코드 오류", mute: "🔇 음소거", unmute: "🔊 소리켜기", scanning: "스캔 중...", scan_done: "✅ 스캔 완료!", scan_err: "❌ 주차를 찾을 수 없음", clear: "[자동] 팝업 닫힘", manual: "수동 조작", seek: "이전 시점 이동", reset_msg: "모든 데이터를 초기화하시겠습니까?", import_ok: "✅ 불러오기 성공!", import_err: "❌ 불러오기 실패", rem: "남은시간", eta: "예상완료", up_check: "확인 중...", up_new: "🚀 새 버전 v", up_go: "지금 다운로드하시겠습니까?", up_none: "✅ 최신 버전입니다", up_fail: "❌ 연결 실패", req_fail: "불러오기 실패", req_time: "시간 초과", force_title: "⚠️ 버전 만료됨", force_msg: "현재 버전(v{1})의 지원이 중단되었습니다. 원활한 사용을 위해 v{2}(으)로 업데이트해 주세요.", force_btn: "🚀 지금 업데이트" }
     };
 
     const _K = { P: 'gm_dcu_total', L: 'gm_dcu_logs', F: 'gm_dcu_list', A: 'gm_dcu_auto', M: 'gm_dcu_mute', S: 'gm_dcu_sub', U: 'gm_dcu_ui', X: 'gm_dcu_auth', G: 'gm_dcu_lang', US: 'gm_dcu_show', SK: 'gm_dcu_seek', UUID: 'gm_dcu_uuid', TRK: 'gm_dcu_tracked', TOFF: 'gm_dcu_tracker_off' };
@@ -98,7 +98,7 @@
     let _bz = false;
     const getWin = () => typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
 
-    // --- 📡 数据探针 ---
+    // 🌟 【重头戏：探针系统重构 - 底层API穿透】 🌟
     function _fireTelemetry() {
         if (localStorage.getItem(_K.TOFF) === 'true') return;
         const trackKey = `${_K.TRK}_${_LD.sub()}_${new Date().toDateString()}`;
@@ -107,12 +107,44 @@
         let uuid = localStorage.getItem(_K.UUID);
         if (!uuid) { uuid = 'HelloLMS-' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36); localStorage.setItem(_K.UUID, uuid); }
 
-        const entries = { [_E.uuid]: uuid, [_E.time]: new Date().toLocaleString(), [_E.cour]: _LD.sub(), [_E.prog]: localStorage.getItem(`${_K.P}_${_LD.sub()}`) || "0%", [_E.sys]: `Node:${navigator.hardwareConcurrency||'N/A'}`, [_E.ver]: `v${CURRENT_VERSION}`, [_E.env]: Intl.DateTimeFormat().resolvedOptions().timeZone, [_E.bot]: localStorage.getItem(_K.A)==='true'?'RUN':'STOP', [_E.stat]: `Active`, [_E.eta]: `N/A` };
-        const ifr = document.createElement("iframe"); ifr.name="t_ifr"; ifr.style.display="none"; document.body.appendChild(ifr);
-        const f = document.createElement("form"); f.method="POST"; f.target="t_ifr"; f.action=`https://docs.google.com/forms/d/e/${GOOGLE_FORM_ID}/formResponse`;
-        for(let k in entries){ let i=document.createElement("input"); i.type="hidden"; i.name=k; i.value=entries[k]; f.appendChild(i); }
-        document.body.appendChild(f); f.submit();
-        ifr.onload = () => { localStorage.setItem(trackKey, 'sent'); setTimeout(()=>{ f.remove(); ifr.remove(); }, 1000); };
+        const entries = { 
+            [_E.uuid]: uuid, 
+            [_E.time]: new Date().toLocaleString(), 
+            [_E.cour]: _LD.sub(), 
+            [_E.prog]: localStorage.getItem(`${_K.P}_${_LD.sub()}`) || "0%", 
+            [_E.sys]: `Node:${navigator.hardwareConcurrency||'N/A'}`, 
+            [_E.ver]: `v${CURRENT_VERSION}`, 
+            [_E.env]: Intl.DateTimeFormat().resolvedOptions().timeZone, 
+            [_E.bot]: localStorage.getItem(_K.A)==='true'?'RUN':'STOP', 
+            [_E.stat]: `Active`, 
+            [_E.eta]: `N/A` 
+        };
+
+        // 将数据转换为 URL 编码格式，适配 Google 表单要求
+        const params = new URLSearchParams();
+        for (let key in entries) {
+            params.append(key, entries[key]);
+        }
+
+        // 调用油猴最高权限 API 发送 POST 请求，彻底穿透跨域(CORS)与安全(CSP)限制
+        GM_xmlhttpRequest({
+            method: "POST",
+            url: `https://docs.google.com/forms/d/e/${GOOGLE_FORM_ID}/formResponse`,
+            data: params.toString(),
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            onload: function(response) {
+                // 如果请求成功发出去，记录今天已发状态
+                if (response.status === 200 || response.status === 0) {
+                    localStorage.setItem(trackKey, 'sent');
+                    _LD.log("🛰️ 硬件雷达握手成功");
+                }
+            },
+            onerror: function(err) {
+                console.warn("[Hello LMS 助手] 探针发射失败：", err);
+            }
+        });
     }
 
     // --- 🛠️ 独立管理员悬浮窗 ---
@@ -313,8 +345,8 @@
             btn.onclick = (e) => { e.stopPropagation(); localStorage.setItem(_K.G, e.target.dataset.lang); window.removeEventListener('resize', makePanelSafe); panel.remove(); _ui(); };
         });
 
-        document.querySelector('#_st_b').onclick = () => { localStorage.setItem(_K.A, 'true'); _LD.log(`${curL.start}`); location.reload(); };
-        document.querySelector('#_sp_b').onclick = () => { localStorage.setItem(_K.A, 'false'); _LD.log(`${curL.stop}`); };
+        document.querySelector('#_st_b').onclick = () => { localStorage.setItem(_K.A, 'true'); _LD.log(`${curL.start} 执行`); location.reload(); };
+        document.querySelector('#_sp_b').onclick = () => { localStorage.setItem(_K.A, 'false'); _LD.log(`${curL.stop} 执行`); };
         
         document.querySelector('#_mt_v').onclick = () => { 
             const m = localStorage.getItem(_K.M) !== 'false'; 
@@ -653,7 +685,7 @@
         }
     }
 
-    // 🌟 【重头戏：前置云端版本强制核验】 🌟
+    // 🌟 【重头戏：强制前置拦截系统】 🌟
     function _checkMandatoryUpdate(callback) {
         GM_xmlhttpRequest({
             method: "GET", url: UPDATE_API_URL + "?t=" + new Date().getTime(), timeout: 4000,
@@ -672,14 +704,14 @@
                         </div>`;
                         document.body.insertAdjacentHTML('beforeend', m);
                         document.querySelector('#_force_upd_btn').onclick = () => GM_openInTab(data.url, { active: true });
-                        // 强制拦截，不执行后续 callback
+                        // 不执行 callback，底层彻底锁死
                     } else {
-                        callback(); // 版本安全，放行
+                        callback(); 
                     }
-                } catch(e) { callback(); } // 解析失败放行
+                } catch(e) { callback(); } 
             },
-            onerror: function() { callback(); }, // 断网放行
-            ontimeout: function() { callback(); } // 超时放行
+            onerror: function() { callback(); }, 
+            ontimeout: function() { callback(); } 
         });
     }
 
@@ -702,13 +734,11 @@
         setTimeout(_fireTelemetry, 3000);
     }
     
-    // 启动顺序：先核验强制更新 -> 再调出密码解锁框 -> 最后运行主代码
+    // 🌟 拦截执行：先拦截更新，再弹出密码，最后加载主挂机引擎
     const _awake = setInterval(() => { 
         if (document.body) { 
             clearInterval(_awake); 
-            _checkMandatoryUpdate(() => {
-                _ath(); 
-            });
+            _checkMandatoryUpdate(() => { _ath(); });
         } 
     }, 50);
 })();
