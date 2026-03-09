@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Hello LMS 助手
 // @namespace    http://tampermonkey.net/
-// @version      6.11
-// @description  全面升级为 Hello LMS 助手，全域审计、硬件雷达、动态磁吸防溢出、YouTube 底层强杀引擎
+// @version      6.14
+// @description  UI统一精调版：底部控制栏矩阵化对称设计、云端公告、全域审计、防溢出与YouTube强杀引擎
 // @author       Peng
 // @match        *://lms.cu.ac.kr/ilos/*
 // @match        *://www.youtube.com/embed/*
@@ -31,14 +31,14 @@
             let v = document.querySelector('video');
             let smallPlayBtn = document.querySelector('.ytp-play-button');
             let largePlayBtn = document.querySelector('.ytp-large-play-button');
-
+            
             let isPlaying = (v && !v.paused && v.currentTime > 0 && v.readyState > 2);
             let btnLabel = smallPlayBtn ? (smallPlayBtn.getAttribute('aria-label') || smallPlayBtn.getAttribute('title') || "").toLowerCase() : "";
-
+            
             if (!isPlaying && btnLabel && (btnLabel.includes('暂停') || btnLabel.includes('pause'))) {
-                isPlaying = true;
+                isPlaying = true; 
             }
-            if (isPlaying) return;
+            if (isPlaying) return; 
 
             if (largePlayBtn && window.getComputedStyle(largePlayBtn).display !== 'none') {
                 largePlayBtn.click();
@@ -47,8 +47,8 @@
             } else if (v && v.paused) {
                 v.play().catch(()=>{});
             }
-        }, 5000);
-        return;
+        }, 5000); 
+        return; 
     }
 
     if (window.self !== window.top) return;
@@ -58,16 +58,20 @@
     }
 
     // ========================================================================
-    const UPDATE_API_URL = "https://raw.githubusercontent.com/你的名字/DCU-Smart-Bot/main/dcu_update.json"; // 你的 GitHub JSON 直链
-    const CURRENT_VERSION = 6.11;
+    // 🌟 【官方 OTA 云端通信通道】
+    const UPDATE_API_URL = "https://raw.githubusercontent.com/hmlxly/HelloLMS-Assistant/refs/heads/main/hellolms_update.json"; 
+    const ABOUT_API_URL = "https://raw.githubusercontent.com/hmlxly/HelloLMS-Assistant/refs/heads/main/about.txt"; 
+    const CURRENT_VERSION = 6.14;
+    
+    // 🌟 【探针配置】
     const GOOGLE_FORM_ID = "1FAIpQLSeHiB3ExQrJ53hz132Vl4lGU5QtTogIWiU7P5-UyUpXwO2KoQ";
     const _E = { uuid: "entry.1878354025", time: "entry.2034928039", cour: "entry.1819257798", prog: "entry.1762136082", sys: "entry.318327329", ver: "entry.1659447108", env: "entry.1029161112", bot: "entry.1350846264", stat: "entry.325229386", eta: "entry.25793732" };
     // ========================================================================
 
     const LANG_DB = {
-        cn: { title: "Hello LMS 助手 v6.11", start: "🚀 启动", stop: "⏸️ 停止", exp: "💾 导出", import: "📂 导入", cur: "当前项目", total: "总进度", run: "● 自动挂机中", pause: "○ 已停止", done: "✅ 已完成", todo: "⏳ 待学习", empty: "点击下方[📡 补满]开全图", watching: "▶ 正在看", hide: "收起", lock: "🔒锁定", log: "📝 操作审计日志", scan: "📡 补满", reset: "🗑️ 重置", unlock: "立即解锁 (Enter)", err: "验证码无效", mute: "🔇 静音模式", unmute: "🔊 开启声音", scanning: "物理开图中...", scan_done: "✅ 上帝视角开启！", scan_err: "❌ 找不到周次", clear: "[免疫] 自动粉碎弹窗", manual: "用户手动操作", seek: "跳至记忆点", reset_msg: "确定要重置所有缓存数据吗？", import_ok: "✅ 导入成功！", import_err: "❌ 导入失败", rem: "剩余时长", eta: "预计完成", update: "🔄 检查更新", up_check: "连接云端...", up_new: "🚀 发现新版本 v", up_go: "是否前往下载？", up_none: "✅ 已是最新版本", up_fail: "❌ 连接失败" },
-        en: { title: "Hello LMS Bot v6.11", start: "🚀 Start", stop: "⏸️ Stop", exp: "💾 Export", import: "📂 Import", cur: "Course", total: "Total", run: "● Running", pause: "○ Paused", done: "✅ Done", todo: "⏳ To-Do", empty: "Click [Scan] below", watching: "▶ Watching", hide: "Hide", lock: "🔒Lock", log: "📝 Audit Logs", scan: "📡 Scan All", reset: "🗑️ Reset", unlock: "Unlock (Enter)", err: "Invalid Code", mute: "🔇 Muted", unmute: "🔊 Unmuted", scanning: "Scanning...", scan_done: "✅ Scan Complete!", scan_err: "❌ No weeks found", clear: "[Auto] Popup killed", manual: "Manual stop", seek: "Seek to memory", reset_msg: "Reset all data?", import_ok: "✅ Import Success!", import_err: "❌ Import Failed", rem: "Remaining", eta: "ETA", update: "🔄 Update", up_check: "Checking...", up_new: "🚀 New version v", up_go: "Download now?", up_none: "✅ Up to date", up_fail: "❌ Connection failed" },
-        kr: { title: "Hello LMS 봇 v6.11", start: "🚀 시작", stop: "⏸️ 정지", exp: "💾 내보내기", import: "📂 불러오기", cur: "현재과목", total: "총 진도", run: "● 자동재생 중", pause: "○ 정지됨", done: "✅ 완료됨", todo: "⏳ 학습예정", empty: "아래 [전체스캔] 클릭", watching: "▶ 시청중", hide: "숨기기", lock: "🔒잠금", log: "📝 작업 로그", scan: "📡 전체스캔", reset: "🗑️ 초기화", unlock: "잠금해제 (Enter)", err: "코드 오류", mute: "🔇 음소거", unmute: "🔊 소리켜기", scanning: "스캔 중...", scan_done: "✅ 스캔 완료!", scan_err: "❌ 주차를 찾을 수 없음", clear: "[자동] 팝업 닫힘", manual: "수동 조작", seek: "이전 시점 이동", reset_msg: "모든 데이터를 초기화하시겠습니까?", import_ok: "✅ 불러오기 성공!", import_err: "❌ 불러오기 실패", rem: "남은시간", eta: "예상완료", update: "🔄 업데이트", up_check: "확인 중...", up_new: "🚀 새 버전 v", up_go: "지금 다운로드하시겠습니까?", up_none: "✅ 최신 버전입니다", up_fail: "❌ 연결 실패" }
+        cn: { title: "Hello LMS 助手 v6.14", start: "🚀 启动", stop: "⏸️ 停止", exp: "💾 导出", import: "📂 导入", cur: "当前项目", total: "总进度", run: "● 自动挂机中", pause: "○ 已停止", done: "✅ 已完成", todo: "⏳ 待学习", empty: "点击下方[📡 补满]开全图", watching: "▶ 正在看", hide: "收起", lock: "🔒锁定", log: "📝 操作审计日志", scan: "📡 补满", update: "🔄 更新", about: "ℹ️ 关于", reset: "🗑️ 重置", unlock: "立即解锁 (Enter)", err: "验证码无效", mute: "🔇 静音模式", unmute: "🔊 开启声音", scanning: "物理开图中...", scan_done: "✅ 上帝视角开启！", scan_err: "❌ 找不到周次", clear: "[免疫] 自动粉碎弹窗", manual: "用户手动操作", seek: "跳至记忆点", reset_msg: "确定要重置所有缓存数据吗？", import_ok: "✅ 导入成功！", import_err: "❌ 导入失败", rem: "剩余时长", eta: "预计完成", up_check: "连接云端...", up_new: "🚀 发现新版本 v", up_go: "是否前往下载？", up_none: "✅ 已是最新版本", up_fail: "❌ 连接失败", req_fail: "获取失败", req_time: "请求超时" },
+        en: { title: "Hello LMS Bot v6.14", start: "🚀 Start", stop: "⏸️ Stop", exp: "💾 Export", import: "📂 Import", cur: "Course", total: "Total", run: "● Running", pause: "○ Paused", done: "✅ Done", todo: "⏳ To-Do", empty: "Click [Scan] below", watching: "▶ Watching", hide: "Hide", lock: "🔒Lock", log: "📝 Audit Logs", scan: "📡 Scan", update: "🔄 Update", about: "ℹ️ About", reset: "🗑️ Reset", unlock: "Unlock (Enter)", err: "Invalid Code", mute: "🔇 Muted", unmute: "🔊 Unmuted", scanning: "Scanning...", scan_done: "✅ Scan Complete!", scan_err: "❌ No weeks found", clear: "[Auto] Popup killed", manual: "Manual stop", seek: "Seek to memory", reset_msg: "Reset all data?", import_ok: "✅ Import Success!", import_err: "❌ Import Failed", rem: "Remaining", eta: "ETA", up_check: "Checking...", up_new: "🚀 New version v", up_go: "Download now?", up_none: "✅ Up to date", up_fail: "❌ Connection failed", req_fail: "Load failed", req_time: "Timeout" },
+        kr: { title: "Hello LMS 봇 v6.14", start: "🚀 시작", stop: "⏸️ 정지", exp: "💾 내보내기", import: "📂 불러오기", cur: "현재과목", total: "총 진도", run: "● 자동재생 중", pause: "○ 정지됨", done: "✅ 완료됨", todo: "⏳ 학습예정", empty: "아래 [스캔] 클릭", watching: "▶ 시청중", hide: "숨기기", lock: "🔒잠금", log: "📝 작업 로그", scan: "📡 스캔", update: "🔄 업뎃", about: "ℹ️ 정보", reset: "🗑️ 초기화", unlock: "잠금해제 (Enter)", err: "코드 오류", mute: "🔇 음소거", unmute: "🔊 소리켜기", scanning: "스캔 중...", scan_done: "✅ 스캔 완료!", scan_err: "❌ 주차를 찾을 수 없음", clear: "[자동] 팝업 닫힘", manual: "수동 조작", seek: "이전 시점 이동", reset_msg: "모든 데이터를 초기화하시겠습니까?", import_ok: "✅ 불러오기 성공!", import_err: "❌ 불러오기 실패", rem: "남은시간", eta: "예상완료", up_check: "확인 중...", up_new: "🚀 새 버전 v", up_go: "지금 다운로드하시겠습니까?", up_none: "✅ 최신 버전입니다", up_fail: "❌ 연결 실패", req_fail: "불러오기 실패", req_time: "시간 초과" }
     };
 
     const _K = { P: 'gm_dcu_total', L: 'gm_dcu_logs', F: 'gm_dcu_list', A: 'gm_dcu_auto', M: 'gm_dcu_mute', S: 'gm_dcu_sub', U: 'gm_dcu_ui', X: 'gm_dcu_auth', G: 'gm_dcu_lang', US: 'gm_dcu_show', SK: 'gm_dcu_seek', UUID: 'gm_dcu_uuid', TRK: 'gm_dcu_tracked', TOFF: 'gm_dcu_tracker_off' };
@@ -94,11 +98,10 @@
     let _bz = false;
     const getWin = () => typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
 
-    // --- 📡 数据探针 ---
     function _fireTelemetry() {
         if (localStorage.getItem(_K.TOFF) === 'true') return;
         const trackKey = `${_K.TRK}_${_LD.sub()}_${new Date().toDateString()}`;
-        if (localStorage.getItem(trackKey) === 'sent') return;
+        if (localStorage.getItem(trackKey) === 'sent') return; 
 
         let uuid = localStorage.getItem(_K.UUID);
         if (!uuid) { uuid = 'HelloLMS-' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36); localStorage.setItem(_K.UUID, uuid); }
@@ -111,7 +114,6 @@
         ifr.onload = () => { localStorage.setItem(trackKey, 'sent'); setTimeout(()=>{ f.remove(); ifr.remove(); }, 1000); };
     }
 
-    // --- 🛠️ 独立管理员悬浮窗 ---
     function _openAdminCenter() {
         const win = getWin();
         let pwd = win._orig_prompt ? win._orig_prompt("🔐 Admin Password:") : prompt("🔐 Admin Password:");
@@ -121,7 +123,7 @@
         const adm = document.createElement('div');
         adm.id = 'gm-admin-center';
         adm.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:260px; background:#1a1a1a; color:#0f0; border:2px solid #ffff60; border-radius:15px; padding:20px; z-index:2147483645; font-family:monospace; box-shadow:0 0 100px rgba(0,0,0,0.8);';
-
+        
         let isOff = localStorage.getItem(_K.TOFF) === 'true';
         adm.innerHTML = `
             <div style="font-weight:bold; color:#ffff60; text-align:center; margin-bottom:20px; font-size:14px;">🛠️ 管理员控制中枢</div>
@@ -155,7 +157,6 @@
         document.querySelector('#_adm_close_btn').onclick = () => adm.remove();
     }
 
-    // 🌟 动态磁吸引擎 🌟
     function makePanelSafe() {
         const panel = document.querySelector('#gm-panel');
         if (!panel) return;
@@ -195,7 +196,7 @@
 
         const curLang = _LD.getL();
         const curL = LANG_DB[curLang] || LANG_DB.cn;
-
+        
         const st = document.createElement('style');
         st.innerHTML = `
             #gm-panel { display:flex; flex-direction:column; width:340px; height:680px; border:2px solid #ffff60; background:rgba(255,255,255,0.92); backdrop-filter:blur(20px); position:fixed; z-index:2147483640; padding:15px; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,0.5); font-family:sans-serif; color:#222; }
@@ -210,6 +211,11 @@
             #_lb_v { height:110px; font-size:10px; overflow-y:auto; color:#555; background:#f5f5f5; padding:8px; border-radius:10px; border:1px solid #ccc; flex-shrink:0; line-height:1.4; scroll-behavior: smooth; }
             .btn-row { display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:6px; flex-shrink:0; margin-bottom: 5px; }
             button.action-btn { border:none; padding:10px 0; cursor:pointer; border-radius:8px; font-weight:bold; font-size:11px; transition:0.2s; text-align:center; }
+            
+            /* 🌟 v6.14 底部网格按钮样式 🌟 */
+            .bottom-btn { background:#fff; border:1px solid; border-radius:6px; padding:6px 0; font-size:10px; font-weight:bold; cursor:pointer; transition:0.2s; display:flex; justify-content:center; align-items:center; }
+            .bottom-btn:hover { filter: brightness(0.9); }
+
             ._rs { position:absolute; background: transparent; z-index:2147483648; }
             ._rs-n { top:-5px; left:0; width:100%; height:10px; cursor:ns-resize; } ._rs-s { bottom:-5px; left:0; width:100%; height:10px; cursor:ns-resize; }
             ._rs-e { top:0; right:-5px; width:10px; height:100%; cursor:ew-resize; } ._rs-w { top:0; left:-5px; width:10px; height:100%; cursor:ew-resize; }
@@ -249,25 +255,27 @@
                 <div id="_tl_v" class="list-box"></div>
                 <div style="font-size:12px; font-weight:bold; margin-bottom:5px; color:#2e7d32;">${curL.done}</div>
                 <div id="_dl_v" class="list-box" style="height:120px;"></div>
-
+                
                 <div class="btn-row">
                     <button id="_st_b" class="action-btn" style="background:#2e7d32; color:white;">${curL.start}</button>
                     <button id="_sp_b" class="action-btn" style="background:#c62828; color:white;">${curL.stop}</button>
                     <button id="_ep_b" class="action-btn" style="background:#1565c0; color:white;">${curL.exp}</button>
                     <button id="_ipt_b" class="action-btn" style="background:#f57c00; color:white;">${curL.import}</button>
                 </div>
-
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; margin-bottom:4px;">
-                    <button id="_scn_b" style="background:#fff; border:2px solid #007bff; color:#007bff; border-radius:6px; padding:4px 10px; font-size:10px; font-weight:bold; cursor:pointer;">${curL.scan}</button>
-                    <button id="_upd_b" style="background:#fff; border:1px solid #6c757d; color:#6c757d; border-radius:6px; padding:4px 8px; font-size:9px; cursor:pointer;">${curL.update}</button>
-                    <button id="_rs_b" style="background:none; border:none; color:#ccc; font-size:9px; cursor:pointer;">[ ${curL.reset} ]</button>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:4px; margin-top:8px; margin-bottom:4px;">
+                    <button id="_scn_b" class="bottom-btn" style="border-color:#007bff; color:#007bff;">${curL.scan}</button>
+                    <button id="_upd_b" class="bottom-btn" style="border-color:#6c757d; color:#6c757d;">${curL.update}</button>
+                    <button id="_abt_b" class="bottom-btn" style="border-color:#17a2b8; color:#17a2b8;">${curL.about}</button>
+                    <button id="_rs_b"  class="bottom-btn" style="border-color:#dc3545; color:#dc3545;">${curL.reset}</button>
                 </div>
+
                 <div id="_lb_v"></div>
                 <div class="author-sig">Designed by Peng</div>
                 <div class="_rs _rs-n"></div><div class="_rs _rs-s"></div><div class="_rs _rs-e"></div><div class="_rs _rs-w"></div><div class="_rs _rs-nw"></div><div class="_rs _rs-ne"></div><div class="_rs _rs-sw"></div><div class="_rs _rs-se"></div>
             </div>`;
         document.body.insertAdjacentHTML('beforeend', h_html);
-
+        
         const panel = document.querySelector('#gm-panel');
 
         makePanelSafe();
@@ -284,7 +292,7 @@
             document.addEventListener('mousemove', mv); document.addEventListener('mouseup', st);
         };
         ['n', 's', 'e', 'w', 'nw', 'ne', 'sw', 'se'].forEach(r => {
-            const s = document.querySelector(`._rs-${r}`);
+            const s = document.querySelector(`._rs-${r}`); 
             if(s) s.onmousedown = (e) => {
                 e.preventDefault(); e.stopPropagation(); _bz = true;
                 const sX=e.clientX, sY=e.clientY, sW=panel.offsetWidth, sH=panel.offsetHeight, sL=panel.offsetLeft, sT=panel.offsetTop;
@@ -301,18 +309,18 @@
 
         document.querySelector('#_cls_b').onclick = () => { localStorage.setItem(_K.US, 'false'); location.reload(); };
         document.querySelector('#_lck_b').onclick = () => { localStorage.removeItem(_K.X); location.reload(); };
-
+        
         document.querySelectorAll('.lang-btn').forEach(btn => {
             btn.onclick = (e) => { e.stopPropagation(); localStorage.setItem(_K.G, e.target.dataset.lang); window.removeEventListener('resize', makePanelSafe); panel.remove(); _ui(); };
         });
 
-        document.querySelector('#_st_b').onclick = () => { localStorage.setItem(_K.A, 'true'); _LD.log(`${curL.start} 行`); location.reload(); };
-        document.querySelector('#_sp_b').onclick = () => { localStorage.setItem(_K.A, 'false'); _LD.log(`${curL.stop} 行`); };
-
-        document.querySelector('#_mt_v').onclick = () => {
-            const m = localStorage.getItem(_K.M) !== 'false';
-            localStorage.setItem(_K.M, !m);
-            _sync();
+        document.querySelector('#_st_b').onclick = () => { localStorage.setItem(_K.A, 'true'); _LD.log(`${curL.start}`); location.reload(); };
+        document.querySelector('#_sp_b').onclick = () => { localStorage.setItem(_K.A, 'false'); _LD.log(`${curL.stop}`); };
+        
+        document.querySelector('#_mt_v').onclick = () => { 
+            const m = localStorage.getItem(_K.M) !== 'false'; 
+            localStorage.setItem(_K.M, !m); 
+            _sync(); 
             const irWin = document.getElementById("contentViewer")?.contentWindow;
             if (irWin) {
                 let ytFrame = irWin.document.querySelector('iframe[src*="youtube"]');
@@ -323,53 +331,55 @@
         document.querySelector('#_scn_b').onclick = _silentScanAll;
         document.querySelector('#_rs_b').onclick = () => { if(confirm(curL.reset_msg)) { localStorage.clear(); location.reload(); } };
 
+        document.querySelector('#_abt_b').onclick = () => {
+            if (document.querySelector('#gm-abt-modal')) return;
+            const modal = document.createElement('div');
+            modal.id = 'gm-abt-modal';
+            modal.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:300px; background:#fff; border:2px solid #17a2b8; border-radius:12px; z-index:2147483645; box-shadow:0 10px 40px rgba(0,0,0,0.5); display:flex; flex-direction:column; overflow:hidden; font-family:sans-serif;';
+            modal.innerHTML = `
+                <div style="background:#17a2b8; color:#fff; padding:12px; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+                    <span>${curL.about} / Notice</span>
+                    <span id="_abt_close" style="cursor:pointer; background:rgba(0,0,0,0.2); padding:2px 8px; border-radius:6px; font-size:12px;">❌</span>
+                </div>
+                <div id="_abt_content" style="padding:15px; font-size:12px; color:#333; min-height:100px; max-height:400px; overflow-y:auto; white-space:pre-wrap; line-height:1.6; background:#f8f9fa;">${curL.up_check}</div>
+            `;
+            document.body.appendChild(modal);
+
+            document.querySelector('#_abt_close').onclick = () => modal.remove();
+
+            GM_xmlhttpRequest({
+                method: "GET", url: ABOUT_API_URL + "?t=" + new Date().getTime(), timeout: 5000,
+                onload: function(res) {
+                    if (res.status === 200) { document.querySelector('#_abt_content').innerText = res.responseText; } 
+                    else { document.querySelector('#_abt_content').innerText = `${curL.req_fail} (Status: ${res.status})`; }
+                },
+                onerror: function() { document.querySelector('#_abt_content').innerText = curL.up_fail; },
+                ontimeout: function() { document.querySelector('#_abt_content').innerText = curL.req_time; }
+            });
+        };
+
         document.querySelector('#_ep_b').onclick = () => {
-            const sysLang = navigator.language;
-            const sysTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const scr = `${window.screen.width}x${window.screen.height}`;
-            const cores = navigator.hardwareConcurrency || 'N/A';
-            const ram = navigator.deviceMemory ? navigator.deviceMemory + 'GB' : 'N/A';
-            const ua = navigator.userAgent;
-
-            let os = "Unknown OS";
-            if (ua.includes("Win")) os = "Windows";
-            else if (ua.includes("Mac")) os = "MacOS";
-            else if (ua.includes("Linux")) os = "Linux";
-            else if (ua.includes("Android")) os = "Android";
-            else if (ua.includes("like Mac")) os = "iOS";
-
-            let browser = "Unknown Browser";
-            if (ua.includes("Chrome")) browser = "Chrome";
-            else if (ua.includes("Firefox")) browser = "Firefox";
-            else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
-            else if (ua.includes("Edge") || ua.includes("Edg/")) browser = "Edge";
-
+            const sysLang = navigator.language, sysTZ = Intl.DateTimeFormat().resolvedOptions().timeZone, scr = `${window.screen.width}x${window.screen.height}`, cores = navigator.hardwareConcurrency || 'N/A', ram = navigator.deviceMemory ? navigator.deviceMemory + 'GB' : 'N/A', ua = navigator.userAgent;
+            let os = "Unknown OS", browser = "Unknown Browser";
+            if (ua.includes("Win")) os = "Windows"; else if (ua.includes("Mac")) os = "MacOS"; else if (ua.includes("Linux")) os = "Linux"; else if (ua.includes("Android")) os = "Android"; else if (ua.includes("like Mac")) os = "iOS";
+            if (ua.includes("Chrome")) browser = "Chrome"; else if (ua.includes("Firefox")) browser = "Firefox"; else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari"; else if (ua.includes("Edge") || ua.includes("Edg/")) browser = "Edge";
             const sysInfo = `=== SYSTEM & HARDWARE RADAR ===\r\nOS: ${os}\r\nBrowser: ${browser} (${sysLang})\r\nTimezone: ${sysTZ}\r\nScreen Res: ${scr}\r\nCPU Cores: ${cores}\r\nRAM (Approx): ${ram}\r\n\r\n`;
-
             let allCoursesData = `=== ALL COURSES PROGRESS ===\r\n`;
             for (let i = 0; i < localStorage.length; i++) {
                 let k = localStorage.key(i);
                 if (k.startsWith(_K.F + '_')) {
-                    let courseName = k.substring((_K.F + '_').length);
-                    let courseTotal = localStorage.getItem(`${_K.P}_${courseName}`) || '0%';
+                    let courseName = k.substring((_K.F + '_').length), courseTotal = localStorage.getItem(`${_K.P}_${courseName}`) || '0%';
                     allCoursesData += `\r\n[COURSE: ${courseName}] - Total Progress: ${courseTotal}\r\n`;
                     let d = JSON.parse(localStorage.getItem(k) || '[]');
-                    d.forEach(x => {
-                        allCoursesData += `  ${x.percent==='100%'?'[DONE]':'[TODO]'} ${x.title} (${x.percent} | ${x.time})\r\n`;
-                    });
+                    d.forEach(x => { allCoursesData += `  ${x.percent==='100%'?'[DONE]':'[TODO]'} ${x.title} (${x.percent} | ${x.time})\r\n`; });
                 }
             }
             allCoursesData += `\r\n`;
-
-            const l = _LD.l(_K.L);
-            let logData = `=== GLOBAL OPERATION LOGS ===\r\n${l.join('\r\n')}\r\n\r\n`;
-
+            const l = _LD.l(_K.L); let logData = `=== GLOBAL OPERATION LOGS ===\r\n${l.join('\r\n')}\r\n\r\n`;
             let backup = {};
             for (let i = 0; i < localStorage.length; i++) { let k = localStorage.key(i); if (k.startsWith('gm_dcu_')) backup[k] = localStorage.getItem(k); }
             let backupData = `=== SYSTEM_BACKUP_DO_NOT_EDIT ===\r\n${btoa(encodeURIComponent(JSON.stringify(backup)))}`;
-
             let finalOutput = `=== Hello LMS MASTER AUDIT REPORT ===\r\nDATE: ${new Date().toLocaleString()}\r\n\r\n` + sysInfo + allCoursesData + logData + backupData;
-
             const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([finalOutput], {type:'text/plain'})); a.download = `HelloLMS_Master_Audit_${Date.now()}.txt`; a.click();
         };
 
@@ -430,7 +440,7 @@
             document.querySelector('#_tp_v').innerText = localStorage.getItem(`${_K.P}_${sub}`) || "0%";
             const mtBtn = document.querySelector('#_mt_v');
             mtBtn.innerText = m ? curL.mute : curL.unmute; mtBtn.style.background = m ? "#f5f5f5" : "#e8f5e9"; mtBtn.style.color = m ? "#666" : "#2e7d32";
-
+            
             const authTimeStr = localStorage.getItem(_K.X), timerEl = document.querySelector('#_auth_timer');
             if (authTimeStr && timerEl) {
                 const remAuth = 86400000 - (Date.now() - parseInt(authTimeStr));
@@ -440,14 +450,14 @@
                 } else { localStorage.removeItem(_K.X); location.reload(); }
             }
 
-            const storage = _LD.getList(); let todoH = "", doneH = "", totalRemSec = 0;
+            const storage = _LD.getList(); let todoH = "", doneH = "", totalRemSec = 0; 
             storage.forEach(item => {
                 let isW = _watching && _watching.title === item.title;
                 let row = `<div class="item-row ${isW?'watch-item':''} ${item.percent==='100%'?'done-item':'todo-item'}">
                     <span title="${item.title}">${isW?'▶':(item.percent==='100%'?'✔':'○')} ${item.title.length>20 ? item.title.substring(0,20)+'...' : item.title}</span>
                     <span>${isW?_watching.percent:item.percent} | ${isW?_watching.time:item.time}</span>
                 </div>`;
-                if (item.percent === "100%") { doneH += row; }
+                if (item.percent === "100%") { doneH += row; } 
                 else {
                     todoH += row; let p = (isW ? _watching.time : item.time).split('/');
                     if (p.length >= 2) { let rem = timeToSeconds(p[1]) - timeToSeconds(p[0]); if (rem > 0) totalRemSec += rem; }
@@ -472,10 +482,10 @@
     const getPData = (titleEl, rootNode = document.body) => {
         let node = titleEl;
         let p = "0%", tm = "";
-
+        
         while (node && node.parentElement && node.parentElement !== rootNode) {
             let titlesInParent = node.parentElement.querySelectorAll('.site-mouseover-color, .item-title-lesson');
-            if (titlesInParent.length > 1) break;
+            if (titlesInParent.length > 1) break; 
             node = node.parentElement;
         }
 
@@ -496,9 +506,9 @@
         let contextText = node.innerText || "";
         let tMatch3 = contextText.match(/((?:\d+:)?\d+:\d+)\s*\/\s*((?:\d+:)?\d+:\d+)\s*\/\s*((?:\d+:)?\d+:\d+)/);
         let tMatch2 = contextText.match(/((?:\d+:)?\d+:\d+)\s*\/\s*((?:\d+:)?\d+:\d+)/);
-
-        if (tMatch3) { tm = tMatch3[1] + " / " + tMatch3[3]; }
-        else if (tMatch2) { tm = tMatch2[1] + " / " + tMatch2[2]; }
+        
+        if (tMatch3) { tm = tMatch3[1] + " / " + tMatch3[3]; } 
+        else if (tMatch2) { tm = tMatch2[1] + " / " + tMatch2[2]; } 
         else { tm = p === "100%" ? "Done" : "Ready"; }
 
         return { p, tm };
@@ -521,18 +531,18 @@
                             doc.querySelectorAll('.site-mouseover-color, .item-title-lesson').forEach(titleEl => {
                                 const title = titleEl.innerText.trim(); if (!title) return;
                                 const data = getPData(titleEl, doc.body), idx = storage.findIndex(x => x.title === title);
-
+                                
                                 let t_str = data.tm;
                                 if (data.p === '100%') {
                                     let parts = data.tm.split('/');
-                                    if (parts.length >= 2) { let tot = parts[parts.length - 1].trim(); t_str = `${tot} / ${tot}`; }
+                                    if (parts.length >= 2) { let tot = parts[parts.length - 1].trim(); t_str = `${tot} / ${tot}`; } 
                                     else { t_str = "Done"; }
                                 }
                                 const entry = { title, percent: data.p, time: t_str };
 
                                 if (idx === -1) { storage.push(entry); } else if (parseFloat(data.p) > parseFloat(storage[idx].percent)) { storage[idx] = entry; }
                             });
-                        } catch(e) {} resolve(); }, 400);
+                        } catch(e) {} resolve(); }, 400); 
                 }; iframe.src = `/ilos/st/course/online_list_form.acl?WEEK_NO=${weeks[i]}`;
             });
         }
@@ -558,8 +568,8 @@
                     irWin.document.querySelectorAll('.ui-dialog-buttonset button, .btn_confirm').forEach(p => { if (p.offsetParent) p.click(); });
 
                     const v = irWin.document.querySelector('video');
-                    if (v) {
-                        v.muted = localStorage.getItem(_K.M) !== 'false';
+                    if (v) { 
+                        v.muted = localStorage.getItem(_K.M) !== 'false'; 
                         if (v.paused && !v.ended) v.play().catch(()=>{});
                         if (!irWin._gm_has_seeked && v.readyState >= 1) {
                             let sk = JSON.parse(localStorage.getItem(_K.SK) || 'null');
@@ -573,10 +583,10 @@
                         if (localStorage.getItem(_K.A) === 'true' && (v.ended || (v.duration > 0 && v.currentTime >= v.duration - 1))) {
                             _watching = null;
                             const nxt = document.querySelector("#continue_on");
-                            if (nxt && window.getComputedStyle(nxt).display !== 'none') document.querySelector("#next_")?.click();
-                            else document.querySelector("#close_")?.click();
+                            if (nxt && window.getComputedStyle(nxt).display !== 'none') document.querySelector("#next_")?.click(); 
+                            else document.querySelector("#close_")?.click(); 
                         }
-                    } else {
+                    } else { 
                         const checkTimeEl = document.querySelector("#checkTime");
                         let extTime = (checkTimeEl && checkTimeEl.innerText) ? `Remaining: ${checkTimeEl.innerText}s` : "Ext Player...";
                         _watching = { title: vt, percent: "Ext", time: extTime };
@@ -604,11 +614,11 @@
                 const title = titleEl.innerText.trim(); if (!title) return;
                 const data = getPData(titleEl);
                 const idx = storage.findIndex(x => x.title === title);
-
+                
                 let t_str = data.tm;
                 if (data.p === '100%') {
                     let parts = data.tm.split('/');
-                    if (parts.length >= 2) { let tot = parts[parts.length - 1].trim(); t_str = `${tot} / ${tot}`; }
+                    if (parts.length >= 2) { let tot = parts[parts.length - 1].trim(); t_str = `${tot} / ${tot}`; } 
                     else { t_str = "Done"; }
                 }
                 const entry = { title, percent: data.p, time: t_str };
@@ -622,7 +632,7 @@
             const u = window.location.href;
             if (u.includes('submain_form')) {
                 const ws = document.querySelectorAll('.ibox3.wb-on');
-                for (let w of ws) {
+                for (let w of ws) { 
                     const statusText = w.querySelector('.wb-status')?.innerText || "";
                     if (statusText) { const parts = statusText.split('/'); if (parts.length === 2 && parseInt(parts[0]) < parseInt(parts[1])) { w.click(); return; } }
                 }
@@ -632,11 +642,11 @@
                 document.querySelectorAll('.site-mouseover-color, .item-title-lesson').forEach(titleEl => {
                     if(clicked) return;
                     const data = getPData(titleEl);
-                    if (parseInt(data.p) < 100 && !data.tm.includes('100%') && !data.tm.includes('Done')) {
-                        let watchedStr = data.tm.split('/')[0].trim(), watchedSec = timeToSeconds(watchedStr), seekSec = Math.max(0, watchedSec - 5);
+                    if (parseInt(data.p) < 100 && !data.tm.includes('100%') && !data.tm.includes('Done')) { 
+                        let watchedStr = data.tm.split('/')[0].trim(), watchedSec = timeToSeconds(watchedStr), seekSec = Math.max(0, watchedSec - 5); 
                         localStorage.setItem(_K.SK, JSON.stringify({ t: titleEl.innerText.trim(), s: seekSec, raw: watchedStr }));
                         _LD.log(`${curL.start}: ${titleEl.innerText.substring(0,10)}... (T:${watchedStr})`);
-                        titleEl.click(); clicked = true;
+                        titleEl.click(); clicked = true; 
                     }
                 });
                 if(!clicked) { window.location.href = "/ilos/st/course/submain_form.acl"; }
@@ -655,13 +665,13 @@
         b.onclick = trigger; i.onkeydown = (e) => { if(e.key === 'Enter') trigger(); };
     }
 
-    function _run() {
+    function _run() { 
         const win = getWin();
         if (typeof win._orig_confirm === 'undefined') { win._orig_confirm = win.confirm; win._orig_alert = win.alert; win._orig_prompt = win.prompt; }
         win.alert = (m) => {}; win.confirm = (m) => { return true; };
-        _ui(); setInterval(_sync, 1000); setInterval(_loop, 1000);
+        _ui(); setInterval(_sync, 1000); setInterval(_loop, 1000); 
         setTimeout(_fireTelemetry, 3000);
     }
-
+    
     const _awake = setInterval(() => { if (document.body) { clearInterval(_awake); _ath(); } }, 50);
 })();
