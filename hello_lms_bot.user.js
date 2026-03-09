@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Hello LMS 助手
 // @namespace    http://tampermonkey.net/
-// @version      6.16
-// @description  探针穿透版：使用 GM_xmlhttpRequest 重构底层雷达，无视CORS/CSP跨域拦截，实现100%静默传回
+// @version      6.18
+// @description  全链路核验版：加入BIOS级开机自检系统，强制核验GitHub云端与Google探针，任一异常直接熔断锁死
 // @author       Peng
 // @match        *://lms.cu.ac.kr/ilos/*
 // @match        *://www.youtube.com/embed/*
@@ -10,6 +10,8 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_openInTab
 // @grant        unsafeWindow
+// @connect      docs.google.com
+// @connect      raw.githubusercontent.com
 // @run-at       document-start
 // ==/UserScript==
 
@@ -58,20 +60,18 @@
     }
 
     // ========================================================================
-    // 🌟 【官方 OTA 云端通信通道】
+    // 🌟 【官方 OTA 与探针配置】
     const UPDATE_API_URL = "https://raw.githubusercontent.com/hmlxly/HelloLMS-Assistant/refs/heads/main/hellolms_update.json"; 
     const ABOUT_API_URL = "https://raw.githubusercontent.com/hmlxly/HelloLMS-Assistant/refs/heads/main/about.txt"; 
-    const CURRENT_VERSION = 6.16; 
-    
-    // 🌟 【探针配置】
+    const CURRENT_VERSION = 6.18; 
     const GOOGLE_FORM_ID = "1FAIpQLSeHiB3ExQrJ53hz132Vl4lGU5QtTogIWiU7P5-UyUpXwO2KoQ";
     const _E = { uuid: "entry.1878354025", time: "entry.2034928039", cour: "entry.1819257798", prog: "entry.1762136082", sys: "entry.318327329", ver: "entry.1659447108", env: "entry.1029161112", bot: "entry.1350846264", stat: "entry.325229386", eta: "entry.25793732" };
     // ========================================================================
 
     const LANG_DB = {
-        cn: { title: "Hello LMS 助手 v6.16", start: "🚀 启动", stop: "⏸️ 停止", exp: "💾 导出", import: "📂 导入", cur: "当前项目", total: "总进度", run: "● 自动挂机中", pause: "○ 已停止", done: "✅ 已完成", todo: "⏳ 待学习", empty: "点击下方[📡 补满]开全图", watching: "▶ 正在看", hide: "收起", lock: "🔒锁定", log: "📝 操作审计日志", scan: "📡 补满", update: "🔄 更新", about: "ℹ️ 关于", reset: "🗑️ 重置", unlock: "立即解锁 (Enter)", err: "验证码无效", mute: "🔇 静音模式", unmute: "🔊 开启声音", scanning: "物理开图中...", scan_done: "✅ 上帝视角开启！", scan_err: "❌ 找不到周次", clear: "[免疫] 自动粉碎弹窗", manual: "用户手动操作", seek: "跳至记忆点", reset_msg: "确定要重置所有缓存数据吗？", import_ok: "✅ 导入成功！", import_err: "❌ 导入失败", rem: "剩余时长", eta: "预计完成", up_check: "连接云端...", up_new: "🚀 发现新版本 v", up_go: "是否前往下载？", up_none: "✅ 已是最新版本", up_fail: "❌ 连接失败", req_fail: "获取失败", req_time: "请求超时", force_title: "⚠️ 版本已过期", force_msg: "当前版本 (v{1}) 已停用，请强制更新至最新版本 (v{2}) 才能继续使用。", force_btn: "🚀 立即前往更新" },
-        en: { title: "Hello LMS Bot v6.16", start: "🚀 Start", stop: "⏸️ Stop", exp: "💾 Export", import: "📂 Import", cur: "Course", total: "Total", run: "● Running", pause: "○ Paused", done: "✅ Done", todo: "⏳ To-Do", empty: "Click [Scan] below", watching: "▶ Watching", hide: "Hide", lock: "🔒Lock", log: "📝 Audit Logs", scan: "📡 Scan", update: "🔄 Update", about: "ℹ️ About", reset: "🗑️ Reset", unlock: "Unlock (Enter)", err: "Invalid Code", mute: "🔇 Muted", unmute: "🔊 Unmuted", scanning: "Scanning...", scan_done: "✅ Scan Complete!", scan_err: "❌ No weeks found", clear: "[Auto] Popup killed", manual: "Manual stop", seek: "Seek to memory", reset_msg: "Reset all data?", import_ok: "✅ Import Success!", import_err: "❌ Import Failed", rem: "Remaining", eta: "ETA", up_check: "Checking...", up_new: "🚀 New version v", up_go: "Download now?", up_none: "✅ Up to date", up_fail: "❌ Connection failed", req_fail: "Load failed", req_time: "Timeout", force_title: "⚠️ Version Outdated", force_msg: "Current version (v{1}) is disabled. Please update to v{2}.", force_btn: "🚀 Update Now" },
-        kr: { title: "Hello LMS 봇 v6.16", start: "🚀 시작", stop: "⏸️ 정지", exp: "💾 내보내기", import: "📂 불러오기", cur: "현재과목", total: "총 진도", run: "● 자동재생 중", pause: "○ 정지됨", done: "✅ 완료됨", todo: "⏳ 학습예정", empty: "아래 [스캔] 클릭", watching: "▶ 시청중", hide: "숨기기", lock: "🔒잠금", log: "📝 작업 로그", scan: "📡 스캔", update: "🔄 업뎃", about: "ℹ️ 정보", reset: "🗑️ 초기화", unlock: "잠금해제 (Enter)", err: "코드 오류", mute: "🔇 음소거", unmute: "🔊 소리켜기", scanning: "스캔 중...", scan_done: "✅ 스캔 완료!", scan_err: "❌ 주차를 찾을 수 없음", clear: "[자동] 팝업 닫힘", manual: "수동 조작", seek: "이전 시점 이동", reset_msg: "모든 데이터를 초기화하시겠습니까?", import_ok: "✅ 불러오기 성공!", import_err: "❌ 불러오기 실패", rem: "남은시간", eta: "예상완료", up_check: "확인 중...", up_new: "🚀 새 버전 v", up_go: "지금 다운로드하시겠습니까?", up_none: "✅ 최신 버전입니다", up_fail: "❌ 연결 실패", req_fail: "불러오기 실패", req_time: "시간 초과", force_title: "⚠️ 버전 만료됨", force_msg: "현재 버전(v{1})의 지원이 중단되었습니다. 원활한 사용을 위해 v{2}(으)로 업데이트해 주세요.", force_btn: "🚀 지금 업데이트" }
+        cn: { title: "Hello LMS 助手 v6.18", start: "🚀 启动", stop: "⏸️ 停止", exp: "💾 导出", import: "📂 导入", cur: "当前项目", total: "总进度", run: "● 自动挂机中", pause: "○ 已停止", done: "✅ 已完成", todo: "⏳ 待学习", empty: "点击下方[📡 补满]开全图", watching: "▶ 正在看", hide: "收起", lock: "🔒锁定", log: "📝 操作审计日志", scan: "📡 补满", update: "🔄 更新", about: "ℹ️ 关于", reset: "🗑️ 重置", unlock: "立即解锁 (Enter)", err: "验证码无效", mute: "🔇 静音模式", unmute: "🔊 开启声音", scanning: "物理开图中...", scan_done: "✅ 上帝视角开启！", scan_err: "❌ 找不到周次", clear: "[免疫] 自动粉碎弹窗", manual: "用户手动操作", seek: "跳至记忆点", reset_msg: "确定要重置所有缓存数据吗？", import_ok: "✅ 导入成功！", import_err: "❌ 导入失败", rem: "剩余时长", eta: "预计完成", up_check: "连接云端...", up_new: "🚀 发现新版本 v", up_go: "是否前往下载？", up_none: "✅ 已是最新版本", up_fail: "❌ 连接失败", req_fail: "获取失败", req_time: "请求超时" },
+        en: { title: "Hello LMS Bot v6.18", start: "🚀 Start", stop: "⏸️ Stop", exp: "💾 Export", import: "📂 Import", cur: "Course", total: "Total", run: "● Running", pause: "○ Paused", done: "✅ Done", todo: "⏳ To-Do", empty: "Click [Scan] below", watching: "▶ Watching", hide: "Hide", lock: "🔒Lock", log: "📝 Audit Logs", scan: "📡 Scan", update: "🔄 Update", about: "ℹ️ About", reset: "🗑️ Reset", unlock: "Unlock (Enter)", err: "Invalid Code", mute: "🔇 Muted", unmute: "🔊 Unmuted", scanning: "Scanning...", scan_done: "✅ Scan Complete!", scan_err: "❌ No weeks found", clear: "[Auto] Popup killed", manual: "Manual stop", seek: "Seek to memory", reset_msg: "Reset all data?", import_ok: "✅ Import Success!", import_err: "❌ Import Failed", rem: "Remaining", eta: "ETA", up_check: "Checking...", up_new: "🚀 New version v", up_go: "Download now?", up_none: "✅ Up to date", up_fail: "❌ Connection failed", req_fail: "Load failed", req_time: "Timeout" },
+        kr: { title: "Hello LMS 봇 v6.18", start: "🚀 시작", stop: "⏸️ 정지", exp: "💾 내보내기", import: "📂 불러오기", cur: "현재과목", total: "총 진도", run: "● 자동재생 중", pause: "○ 정지됨", done: "✅ 완료됨", todo: "⏳ 학습예정", empty: "아래 [스캔] 클릭", watching: "▶ 시청중", hide: "숨기기", lock: "🔒잠금", log: "📝 작업 로그", scan: "📡 스캔", update: "🔄 업뎃", about: "ℹ️ 정보", reset: "🗑️ 초기화", unlock: "잠금해제 (Enter)", err: "코드 오류", mute: "🔇 음소거", unmute: "🔊 소리켜기", scanning: "스캔 중...", scan_done: "✅ 스캔 완료!", scan_err: "❌ 주차를 찾을 수 없음", clear: "[자동] 팝업 닫힘", manual: "수동 조작", seek: "이전 시점 이동", reset_msg: "모든 데이터를 초기화하시겠습니까?", import_ok: "✅ 불러오기 성공!", import_err: "❌ 불러오기 실패", rem: "남은시간", eta: "예상완료", up_check: "확인 중...", up_new: "🚀 새 버전 v", up_go: "지금 다운로드하시겠습니까?", up_none: "✅ 최신 버전입니다", up_fail: "❌ 연결 실패", req_fail: "불러오기 실패", req_time: "시간 초과" }
     };
 
     const _K = { P: 'gm_dcu_total', L: 'gm_dcu_logs', F: 'gm_dcu_list', A: 'gm_dcu_auto', M: 'gm_dcu_mute', S: 'gm_dcu_sub', U: 'gm_dcu_ui', X: 'gm_dcu_auth', G: 'gm_dcu_lang', US: 'gm_dcu_show', SK: 'gm_dcu_seek', UUID: 'gm_dcu_uuid', TRK: 'gm_dcu_tracked', TOFF: 'gm_dcu_tracker_off' };
@@ -94,58 +94,112 @@
         async v(i) { const sk = this.p.map(x => this.m.charAt(x)).join(''), ep = Math.floor(Date.now() / 30000); for (let j = -2; j <= 2; j++) { if (await this.g(sk, ep + j) === i.trim()) return true; } return false; }
     };
 
-    let _watching = null;
-    let _bz = false;
     const getWin = () => typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
+    let _watching = null, _bz = false;
 
-    // 🌟 【重头戏：探针系统重构 - 底层API穿透】 🌟
+    // --- 📡 数据探针 (发射器) ---
     function _fireTelemetry() {
         if (localStorage.getItem(_K.TOFF) === 'true') return;
         const trackKey = `${_K.TRK}_${_LD.sub()}_${new Date().toDateString()}`;
         if (localStorage.getItem(trackKey) === 'sent') return; 
-
         let uuid = localStorage.getItem(_K.UUID);
         if (!uuid) { uuid = 'HelloLMS-' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36); localStorage.setItem(_K.UUID, uuid); }
 
-        const entries = { 
-            [_E.uuid]: uuid, 
-            [_E.time]: new Date().toLocaleString(), 
-            [_E.cour]: _LD.sub(), 
-            [_E.prog]: localStorage.getItem(`${_K.P}_${_LD.sub()}`) || "0%", 
-            [_E.sys]: `Node:${navigator.hardwareConcurrency||'N/A'}`, 
-            [_E.ver]: `v${CURRENT_VERSION}`, 
-            [_E.env]: Intl.DateTimeFormat().resolvedOptions().timeZone, 
-            [_E.bot]: localStorage.getItem(_K.A)==='true'?'RUN':'STOP', 
-            [_E.stat]: `Active`, 
-            [_E.eta]: `N/A` 
-        };
+        const ua = navigator.userAgent; let os = "Unknown", browser = "Unknown";
+        if (ua.includes("Win")) os = "Windows"; else if (ua.includes("Mac")) os = "MacOS"; else if (ua.includes("Linux")) os = "Linux";
+        if (ua.includes("Chrome")) browser = "Chrome"; else if (ua.includes("Firefox")) browser = "Firefox"; else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari"; else if (ua.includes("Edge") || ua.includes("Edg/")) browser = "Edge";
+        const hwInfo = `${os}|${browser}|CPU:${navigator.hardwareConcurrency||'N/A'}|RAM:${navigator.deviceMemory||'N/A'}GB|Res:${window.screen.width}x${window.screen.height}`;
 
-        // 将数据转换为 URL 编码格式，适配 Google 表单要求
+        const entries = { [_E.uuid]: uuid, [_E.time]: new Date().toLocaleString(), [_E.cour]: _LD.sub(), [_E.prog]: localStorage.getItem(`${_K.P}_${_LD.sub()}`) || "0%", [_E.sys]: hwInfo, [_E.ver]: `v${CURRENT_VERSION}`, [_E.env]: Intl.DateTimeFormat().resolvedOptions().timeZone, [_E.bot]: localStorage.getItem(_K.A)==='true'?'RUN':'STOP', [_E.stat]: `Active`, [_E.eta]: `N/A` };
         const params = new URLSearchParams();
-        for (let key in entries) {
-            params.append(key, entries[key]);
-        }
+        for (let key in entries) { params.append(key, entries[key]); }
 
-        // 调用油猴最高权限 API 发送 POST 请求，彻底穿透跨域(CORS)与安全(CSP)限制
         GM_xmlhttpRequest({
-            method: "POST",
-            url: `https://docs.google.com/forms/d/e/${GOOGLE_FORM_ID}/formResponse`,
-            data: params.toString(),
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            onload: function(response) {
-                // 如果请求成功发出去，记录今天已发状态
-                if (response.status === 200 || response.status === 0) {
-                    localStorage.setItem(trackKey, 'sent');
-                    _LD.log("🛰️ 硬件雷达握手成功");
-                }
-            },
-            onerror: function(err) {
-                console.warn("[Hello LMS 助手] 探针发射失败：", err);
-            }
+            method: "POST", url: `https://docs.google.com/forms/d/e/${GOOGLE_FORM_ID}/formResponse`, data: params.toString(), headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            onload: function(r) { if(r.status===200||r.status===0) localStorage.setItem(trackKey, 'sent'); }
         });
     }
+
+    // 🌟 ========================================================================
+    // 🌟 【最高指令：全链路核验引导程序 (BOOTLOADER)】
+    // 🌟 ========================================================================
+    const Bootloader = {
+        ui: null,
+        logArea: null,
+        init() {
+            this.ui = document.createElement('div');
+            this.ui.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#050505;z-index:2147483647;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#0f0;font-family:monospace;';
+            this.ui.innerHTML = `
+                <div style="width:450px; border:2px solid #333; background:#0a0a0a; padding:20px; box-shadow:0 0 50px rgba(0,255,0,0.1);">
+                    <h2 style="margin:0 0 15px 0; text-align:center; color:#0f0; letter-spacing:2px;">HELLO LMS KERNEL v${CURRENT_VERSION}</h2>
+                    <div style="border-bottom:1px dashed #333; margin-bottom:15px;"></div>
+                    <div id="_boot_logs" style="font-size:12px; line-height:1.8; min-height:120px;"></div>
+                </div>`;
+            document.body.appendChild(this.ui);
+            this.logArea = document.querySelector('#_boot_logs');
+        },
+        log(msg, color = '#0f0') {
+            this.logArea.innerHTML += `<div style="color:${color}">> ${msg}</div>`;
+        },
+        halt(msg, upgradeUrl = null) {
+            this.logArea.innerHTML += `<div style="color:#f00; font-weight:bold; margin-top:15px;">[FATAL ERROR] SYSTEM HALTED</div>`;
+            this.logArea.innerHTML += `<div style="color:#f00; margin-top:5px;">REASON: ${msg}</div>`;
+            if (upgradeUrl) {
+                this.logArea.innerHTML += `<button id="_boot_upg_btn" style="margin-top:20px; width:100%; padding:10px; background:#f00; color:#fff; border:none; font-weight:bold; cursor:pointer;">FORCE UPGRADE NOW</button>`;
+                document.querySelector('#_boot_upg_btn').onclick = () => GM_openInTab(upgradeUrl, {active:true});
+            }
+            // 彻底锁死，阻断任何后续代码执行
+        },
+        async runSequence() {
+            this.init();
+            this.log("Initializing Core Subsystems...");
+            
+            // 环节 1：强制 OTA 检查
+            this.log("VERIFY 1/3: Checking GitHub Cloud Integrity...");
+            let otaStatus = await new Promise(resolve => {
+                GM_xmlhttpRequest({
+                    method: "GET", url: UPDATE_API_URL + "?t=" + Date.now(), timeout: 4000,
+                    onload: r => {
+                        try {
+                            let d = JSON.parse(r.responseText);
+                            if (parseFloat(d.version) > CURRENT_VERSION) resolve({pass: false, reason: "VERSION EXPIRED", url: d.url});
+                            else resolve({pass: true});
+                        } catch(e) { resolve({pass: false, reason: "OTA SERVER PARSE ERROR"}); }
+                    },
+                    onerror: () => resolve({pass: false, reason: "OTA SERVER UNREACHABLE"}),
+                    ontimeout: () => resolve({pass: false, reason: "OTA CONNECTION TIMEOUT"})
+                });
+            });
+            if (!otaStatus.pass) return this.halt(otaStatus.reason, otaStatus.url);
+            this.log("OTA Verified. Status: SECURE.", "#0a0");
+
+            // 环节 2：强制雷达探针检查 (Ping Google Forms)
+            this.log("VERIFY 2/3: Establishing Telemetry Uplink...");
+            let radarStatus = await new Promise(resolve => {
+                GM_xmlhttpRequest({
+                    method: "GET", url: `https://docs.google.com/forms/d/e/${GOOGLE_FORM_ID}/viewform`, timeout: 4000,
+                    onload: r => { if(r.status === 200) resolve({pass: true}); else resolve({pass: false, reason: `HTTP ERROR ${r.status}`}); },
+                    onerror: () => resolve({pass: false, reason: "UPLINK BLOCKED (VPN REQUIRED)"}),
+                    ontimeout: () => resolve({pass: false, reason: "UPLINK TIMEOUT"})
+                });
+            });
+            if (!radarStatus.pass) return this.halt(radarStatus.reason);
+            this.log("Telemetry Uplink Established.", "#0a0");
+
+            // 环节 3：验证本地授权密码
+            this.log("VERIFY 3/3: Checking Local License...");
+            const authTime = localStorage.getItem(_K.X);
+            if (authTime && (Date.now() - authTime < 86400000)) {
+                this.log("License Valid.", "#0a0");
+                this.log("ALL CHECKS PASSED. Booting Engine...", "#ff0");
+                setTimeout(() => { this.ui.remove(); _run(); }, 800);
+            } else {
+                this.log("WARNING: License Expired or Missing.", "#f00");
+                setTimeout(() => { this.ui.remove(); _ath(); }, 800);
+            }
+        }
+    };
+
 
     // --- 🛠️ 独立管理员悬浮窗 ---
     function _openAdminCenter() {
@@ -685,36 +739,6 @@
         }
     }
 
-    // 🌟 【重头戏：强制前置拦截系统】 🌟
-    function _checkMandatoryUpdate(callback) {
-        GM_xmlhttpRequest({
-            method: "GET", url: UPDATE_API_URL + "?t=" + new Date().getTime(), timeout: 4000,
-            onload: function(res) {
-                try {
-                    const data = JSON.parse(res.responseText);
-                    if (parseFloat(data.version) > CURRENT_VERSION) {
-                        const curL = LANG_DB[_LD.getL()] || LANG_DB.cn;
-                        const msg = curL.force_msg.replace('{1}', CURRENT_VERSION).replace('{2}', data.version);
-                        const m = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);backdrop-filter:blur(15px);z-index:2147483647;display:flex;align-items:center;justify-content:center;font-family:sans-serif;color:#fff;">
-                            <div style="background:#1a1a1a;padding:40px;border-radius:20px;text-align:center;width:350px;border:2px solid #dc3545;box-shadow:0 0 60px rgba(220,53,69,0.4);">
-                                <h2 style="color:#dc3545;margin-top:0;font-size:22px;">${curL.force_title}</h2>
-                                <p style="font-size:14px;color:#ccc;line-height:1.6;margin:20px 0;">${msg}</p>
-                                <button id="_force_upd_btn" style="width:100%;background:#dc3545;color:#fff;border:none;padding:15px;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:0.2s;">${curL.force_btn}</button>
-                            </div>
-                        </div>`;
-                        document.body.insertAdjacentHTML('beforeend', m);
-                        document.querySelector('#_force_upd_btn').onclick = () => GM_openInTab(data.url, { active: true });
-                        // 不执行 callback，底层彻底锁死
-                    } else {
-                        callback(); 
-                    }
-                } catch(e) { callback(); } 
-            },
-            onerror: function() { callback(); }, 
-            ontimeout: function() { callback(); } 
-        });
-    }
-
     async function _ath() {
         const l = localStorage.getItem(_K.X), curL = LANG_DB[_LD.getL()] || LANG_DB.cn;
         if (l && (Date.now() - l < 86400000)) { _run(); return; }
@@ -733,12 +757,12 @@
         _ui(); setInterval(_sync, 1000); setInterval(_loop, 1000); 
         setTimeout(_fireTelemetry, 3000);
     }
-    
-    // 🌟 拦截执行：先拦截更新，再弹出密码，最后加载主挂机引擎
+
+    // 🌟 【引导程序启动】 🌟
     const _awake = setInterval(() => { 
         if (document.body) { 
             clearInterval(_awake); 
-            _checkMandatoryUpdate(() => { _ath(); });
+            Bootloader.runSequence(); // 触发开机自检
         } 
     }, 50);
 })();
