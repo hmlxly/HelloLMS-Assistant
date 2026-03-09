@@ -3,7 +3,7 @@
 ![Version](https://img.shields.io/badge/Version-v6.14-blue.svg)
 ![Platform](https://img.shields.io/badge/Platform-Hello_LMS-orange.svg)
 
-专为采用 **Hello LMS** 系统的韩国高校（如 DCU 大邱天主教大学）制作的网课自动播放助手。
+专为采用 **Hello LMS** 系统的韩国高校制作的网课自动播放助手。
 
 ## ✨ 主要功能
 
