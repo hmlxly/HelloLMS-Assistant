@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Hello LMS 助手
 // @namespace    http://tampermonkey.net/
-// @version      6.31
-// @description  双轨鉴权版：普通用户100%纯云端口令核验，Admin隐藏控制台采用独立TOTP时间动态密令解锁
+// @version      6.33
+// @description  云端生杀大权版：引入 GitHub 云端指令下发机制，支持远程踢人、废除泄露密码、精准修改 UUID 时长
 // @author       Peng
 // @match        *://lms.cu.ac.kr/ilos/*
 // @match        *://www.youtube.com/embed/*
@@ -44,19 +44,19 @@
     const UPDATE_API_URL = "https://raw.githubusercontent.com/hmlxly/HelloLMS-Assistant/refs/heads/main/hellolms_update.json";
     const ABOUT_API_URL = "https://raw.githubusercontent.com/hmlxly/HelloLMS-Assistant/refs/heads/main/about.txt";
     const AUTH_API_URL = "https://raw.githubusercontent.com/hmlxly/HelloLMS-Assistant/refs/heads/main/auth.json";
-    const CURRENT_VERSION = 6.31;
+    const CURRENT_VERSION = 6.33;
 
     // 🌟 【Telegram 探针配置】
     const TG_BOT_TOKEN = "8703538132:AAGOch-kN7p7Bha3kREiXwcG8knMW3H1OVg";
     const TG_CHAT_ID = "1255597100";
 
     const LANG_DB = {
-        cn: { title: "Hello LMS 助手 v6.31", start: "🚀 启动", stop: "⏸️ 停止", exp: "💾 导出", import: "📂 导入", cur: "当前", total: "总进度", run: "● 自动挂机中", pause: "○ 已停止", done: "✅ 已完成", todo: "⏳ 待学习", empty: "点击下方[📡 扫描]开全图", watching: "▶ 正在看", hide: "收起", lock: "🔒锁定", log: "📝 审计日志", scan: "📡 扫描", update: "🔄 更新", about: "ℹ️ 关于", reset: "🗑️ 重置", unlock: "立即解锁 (Enter)", err: "口令无效或已被封禁", mute: "🔇 静音模式", unmute: "🔊 开启声音", scanning: "开图中...", scan_done: "✅ 扫描完成", scan_err: "❌ 找不到周次", clear: "[免疫] 粉碎弹窗", seek: "跳至记忆点", reset_msg: "重置所有缓存数据？", import_ok: "✅ 导入成功", import_err: "❌ 导入失败", rem: "剩余", eta: "预计", up_check: "连接云端...", up_new: "🚀 发现新版 v", up_go: "前往下载？", up_none: "✅ 已是最新", up_fail: "❌ 连接失败", req_fail: "获取失败", req_time: "请求超时" },
-        en: { title: "Hello LMS Bot v6.31", start: "🚀 Start", stop: "⏸️ Stop", exp: "💾 Export", import: "📂 Import", cur: "Course", total: "Total", run: "● Running", pause: "○ Paused", done: "✅ Done", todo: "⏳ To-Do", empty: "Click [Scan]", watching: "▶ Watching", hide: "Hide", lock: "🔒Lock", log: "📝 Logs", scan: "📡 Scan", update: "🔄 Update", about: "ℹ️ About", reset: "🗑️ Reset", unlock: "Unlock (Enter)", err: "Invalid/Banned Code", mute: "🔇 Muted", unmute: "🔊 Unmuted", scanning: "Scanning...", scan_done: "✅ Scan Done", scan_err: "❌ No weeks", clear: "[Auto] Popup killed", seek: "Seek memory", reset_msg: "Reset data?", import_ok: "✅ Imported", import_err: "❌ Failed", rem: "Rem", eta: "ETA", up_check: "Checking...", up_new: "🚀 New v", up_go: "Download?", up_none: "✅ Up to date", up_fail: "❌ Failed", req_fail: "Load fail", req_time: "Timeout" }
+        cn: { title: "Hello LMS 助手 v6.33", start: "🚀 启动", stop: "⏸️ 停止", exp: "💾 导出", import: "📂 导入", cur: "当前", total: "总进度", run: "● 自动挂机中", pause: "○ 已停止", done: "✅ 已完成", todo: "⏳ 待学习", empty: "点击下方[📡 扫描]开全图", watching: "▶ 正在看", hide: "收起", lock: "🔒锁定", log: "📝 审计日志", scan: "📡 扫描", update: "🔄 更新", about: "ℹ️ 关于", reset: "🗑️ 重置", unlock: "立即解锁 (Enter)", err: "口令无效或已被封禁", mute: "🔇 静音模式", unmute: "🔊 开启声音", scanning: "开图中...", scan_done: "✅ 扫描完成", scan_err: "❌ 找不到周次", clear: "[免疫] 粉碎弹窗", seek: "跳至记忆点", reset_msg: "重置所有缓存数据？", import_ok: "✅ 导入成功", import_err: "❌ 导入失败", rem: "剩余", eta: "预计", up_check: "连接云端...", up_new: "🚀 发现新版 v", up_go: "前往下载？", up_none: "✅ 已是最新", up_fail: "❌ 连接失败", req_fail: "获取失败", req_time: "请求超时" },
+        en: { title: "Hello LMS Bot v6.33", start: "🚀 Start", stop: "⏸️ Stop", exp: "💾 Export", import: "📂 Import", cur: "Course", total: "Total", run: "● Running", pause: "○ Paused", done: "✅ Done", todo: "⏳ To-Do", empty: "Click [Scan]", watching: "▶ Watching", hide: "Hide", lock: "🔒Lock", log: "📝 Logs", scan: "📡 Scan", update: "🔄 Update", about: "ℹ️ About", reset: "🗑️ Reset", unlock: "Unlock (Enter)", err: "Invalid/Banned Code", mute: "🔇 Muted", unmute: "🔊 Unmuted", scanning: "Scanning...", scan_done: "✅ Scan Done", scan_err: "❌ No weeks", clear: "[Auto] Popup killed", seek: "Seek memory", reset_msg: "Reset data?", import_ok: "✅ Imported", import_err: "❌ Failed", rem: "Rem", eta: "ETA", up_check: "Checking...", up_new: "🚀 New v", up_go: "Download?", up_none: "✅ Up to date", up_fail: "❌ Failed", req_fail: "Load fail", req_time: "Timeout" }
     };
     LANG_DB.kr = LANG_DB.en;
 
-    const _K = { P: 'gm_dcu_total', L: 'gm_dcu_logs', F: 'gm_dcu_list', A: 'gm_dcu_auto', M: 'gm_dcu_mute', S: 'gm_dcu_sub', U: 'gm_dcu_ui', X: 'gm_dcu_auth', G: 'gm_dcu_lang', US: 'gm_dcu_show', SK: 'gm_dcu_seek', UUID: 'gm_dcu_uuid', TRK: 'gm_dcu_tg', TOFF: 'gm_dcu_tracker_off' };
+    const _K = { P: 'gm_dcu_total', L: 'gm_dcu_logs', F: 'gm_dcu_list', A: 'gm_dcu_auto', M: 'gm_dcu_mute', S: 'gm_dcu_sub', U: 'gm_dcu_ui', X: 'gm_dcu_auth', G: 'gm_dcu_lang', US: 'gm_dcu_show', SK: 'gm_dcu_seek', UUID: 'gm_dcu_uuid', TRK: 'gm_dcu_tg', TOFF: 'gm_dcu_tracker_off', XP: 'gm_dcu_auth_pwd', OVR: 'gm_dcu_time_ovr' };
 
     const _LD = {
         l: (k, d = '[]') => JSON.parse(localStorage.getItem(k) || d),
@@ -72,7 +72,7 @@
     const getWin = () => typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
     let _watching = null, _bz = false;
 
-    // 🌟 【Admin 专属：TOTP 时间动态密码算法】 🌟
+    // 🌟 【Admin 专属 TOTP 算法】 🌟
     const _VC = {
         m: "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", p: [8, 30, 29, 21, 20, 31, 10, 29, 25, 16, 11, 31, 22, 1, 28, 24],
         b32(s) { let b = ""; for (let i=0; i<s.length; i++) { let v = this.m.indexOf(s.charAt(i).toUpperCase()); if (v >= 0) b += v.toString(2).padStart(5, '0'); } const r = new Uint8Array(Math.floor(b.length/8)); for (let i=0; i<r.length; i++) r[i] = parseInt(b.substr(i*8, 8), 2); return r; },
@@ -80,11 +80,8 @@
         async v(i) { const sk = this.p.map(x => this.m.charAt(x)).join(''), ep = Math.floor(Date.now() / 30000); for (let j = -2; j <= 2; j++) { if (await this.g(sk, ep + j) === i.trim()) return true; } return false; }
     };
 
-    // 🌟 【12位指纹 & TG 暗影全息探针】
-    function _fireTelemetry() {
+    function _fireTelemetry(eventType = '🔄 页面刷新', tryPwd = null) {
         if (localStorage.getItem(_K.TOFF) === 'true') return;
-        const trackKey = `${_K.TRK}_${_LD.sub()}_${new Date().toDateString()}`;
-        if (localStorage.getItem(trackKey) === 'sent') return;
 
         let uuid = localStorage.getItem(_K.UUID);
         if (!uuid) { let p1 = Math.random().toString(36).substring(2, 8), p2 = Math.random().toString(36).substring(2, 8); uuid = 'ID-' + (p1 + p2).toUpperCase(); localStorage.setItem(_K.UUID, uuid); }
@@ -100,12 +97,66 @@
         let etaText = "N/A", etaBox = document.querySelector('#_eta_box');
         if (etaBox && etaBox.innerText) etaText = etaBox.innerText.replace(/\n/g, ' | ');
 
-        const msg = `🚨 *LMS 全息探针报告* 🚨\n\n1️⃣ *标识:* \`${uuid}\`\n2️⃣ *版本:* \`v${CURRENT_VERSION}\`\n3️⃣ *课程:* ${localStorage.getItem(_K.S)||"Unknown"}\n4️⃣ *进度:* \`${p}\`\n5️⃣ *状态:* ${st}\n6️⃣ *耗时:* \`${etaText}\`\n7️⃣ *活跃:* \`Online\`\n8️⃣ *时间:* ${new Date().toLocaleString()}\n9️⃣ *时区:* \`${Intl.DateTimeFormat().resolvedOptions().timeZone}\`\n🔟 *硬件:* \`${hwInfo}\``;
+        let usedPwd = tryPwd || localStorage.getItem(_K.XP) || '未知 / 未登录';
 
-        GM_xmlhttpRequest({ method: "POST", url: `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, headers: { "Content-Type": "application/json" }, data: JSON.stringify({ chat_id: TG_CHAT_ID, text: msg, parse_mode: "Markdown" }), onload: (r) => { if(r.status === 200) localStorage.setItem(trackKey, 'sent'); } });
+        const msg = `🚨 *LMS 探针 [${eventType}]* 🚨\n\n` +
+                    `🔑 *口令:* \`${usedPwd}\`\n` +
+                    `1️⃣ *标识:* \`${uuid}\`\n` +
+                    `2️⃣ *版本:* \`v${CURRENT_VERSION}\`\n` +
+                    `3️⃣ *课程:* ${localStorage.getItem(_K.S)||"Unknown"}\n` +
+                    `4️⃣ *进度:* \`${p}\`\n` +
+                    `5️⃣ *状态:* ${st}\n` +
+                    `6️⃣ *耗时:* \`${etaText}\`\n` +
+                    `7️⃣ *硬件:* \`${hwInfo}\`\n` +
+                    `8️⃣ *时间:* ${new Date().toLocaleString()}`;
+
+        GM_xmlhttpRequest({ method: "POST", url: `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, headers: { "Content-Type": "application/json" }, data: JSON.stringify({ chat_id: TG_CHAT_ID, text: msg, parse_mode: "Markdown" }) });
     }
 
-    // 🌟 【防弹版 BIOS：查 OTA 更新】
+    function _uploadLogs() {
+        if (localStorage.getItem(_K.TOFF) === 'true') return;
+        let uuid = localStorage.getItem(_K.UUID) || "Unknown"; let usedPwd = localStorage.getItem(_K.XP) || '未知';
+        let logs = _LD.l(_K.L); if (logs.length === 0) return;
+        let logStr = logs.join('\n'); if (logStr.length > 3000) logStr = logStr.substring(logStr.length - 3000);
+
+        const msg = `📦 *LMS 日志上传*\n👤 *UUID:* \`${uuid}\`\n🔑 *口令:* \`${usedPwd}\`\n\n*📝 审计记录:*\n\`\`\`text\n${logStr}\n\`\`\``;
+        GM_xmlhttpRequest({ method: "POST", url: `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, headers: { "Content-Type": "application/json" }, data: JSON.stringify({ chat_id: TG_CHAT_ID, text: msg, parse_mode: "Markdown" }) });
+    }
+
+    // 🌟 【重头戏：云端最高指令同步引擎 (每3分钟运行一次)】 🌟
+    function _syncCloudCommands() {
+        if (!localStorage.getItem(_K.X)) return; // 没登录的人不用查
+        GM_xmlhttpRequest({
+            method: "GET", url: AUTH_API_URL + "?t=" + Date.now(), timeout: 5000,
+            onload: r => {
+                try {
+                    let d = JSON.parse(r.responseText);
+                    let uuid = localStorage.getItem(_K.UUID);
+                    let xp = localStorage.getItem(_K.XP);
+
+                    // 1. 猎杀判定：封UUID 或 封口令
+                    if ((d.ban_uuid && d.ban_uuid.includes(uuid)) || (d.ban_code && d.ban_code.includes(xp))) {
+                        localStorage.removeItem(_K.X); localStorage.removeItem(_K.XP);
+                        _fireTelemetry('☠️ 云端击杀（账号被封禁）');
+                        alert("🚨 您的授权已被管理员强制撤销！");
+                        location.reload();
+                    }
+
+                    // 2. 远程加时判定
+                    if (d.set_hours && d.set_hours[uuid]) {
+                        let targetH = d.set_hours[uuid];
+                        if (localStorage.getItem(_K.OVR) != targetH) {
+                            // 设定为：当前时间 + targetH小时 的绝对过期时间
+                            localStorage.setItem(_K.X, Date.now() - 86400000 + (targetH * 3600000));
+                            localStorage.setItem(_K.OVR, targetH);
+                            _fireTelemetry(`⏰ 云端调时: ${targetH} 小时`);
+                        }
+                    }
+                } catch(e) {}
+            }
+        });
+    }
+
     const Bootloader = {
         ui: null, logArea: null, forceStarted: false,
         init() {
@@ -177,7 +228,7 @@
                     <div style="font-weight:bold;">${curL.cur}: <span id="_sub_v">-</span></div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; position:relative;">
                         <span>${curL.total}: <b id="_tp_v" style="font-size:18px; color:#d84315;">0%</b></span>
-                        <div id="_adm_zone" title="Admin Auth" style="position:absolute; right:0; top:-18px; width:50px; height:18px; z-index:10; cursor:default;"></div>
+                        <div id="_adm_zone" title="Admin TOTP" style="position:absolute; right:0; top:-18px; width:50px; height:18px; z-index:10; cursor:pointer;"></div>
                         <button id="_mt_v" style="border:1px solid #aaa; font-size:10px; padding:5px 10px; border-radius:8px; cursor:pointer; font-weight:bold;"></button>
                     </div>
                     <div id="_eta_box" style="font-size:10px; color:#856404; margin-top:6px;"></div><div id="_st_v" style="font-size:11px; font-weight:bold; margin-top:6px;"></div>
@@ -211,9 +262,30 @@
             };
         }
 
-        // 🌟 Admin 后门触发逻辑 🌟
+        // 🌟 Admin 后门触发逻辑 (快速点击3次) 🌟
         let clks = 0, t = null;
-        document.querySelector('#_adm_zone').onclick = () => { clks++; clearTimeout(t); if(clks>=3){ clks=0; _openAdminCenter(); } else t=setTimeout(()=>clks=0, 500); };
+        document.querySelector('#_adm_zone').onclick = async () => {
+            clks++; clearTimeout(t);
+            if(clks >= 3) {
+                clks = 0;
+                if (document.querySelector('#gm-admin-center')) return;
+                const win = getWin();
+                let pwd = win._orig_prompt ? win._orig_prompt("🔐 Admin Auth (TOTP):") : prompt("🔐 Admin Auth (TOTP):");
+                if (!pwd) return;
+                let isValid = await _VC.v(pwd);
+                if (!isValid) return alert("❌ TOTP 密令错误或已过期！");
+
+                const adm = document.createElement('div');
+                adm.id = 'gm-admin-center';
+                adm.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:260px; background:#1a1a1a; color:#0f0; border:2px solid #ffff60; border-radius:15px; padding:20px; z-index:2147483645; font-family:monospace; box-shadow:0 0 100px rgba(0,0,0,0.8);';
+                let isOff = localStorage.getItem(_K.TOFF) === 'true';
+                adm.innerHTML = `<div style="font-weight:bold; color:#ffff60; text-align:center; margin-bottom:20px; font-size:14px;">🛠️ 控制中枢 (已授权)</div><div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;"><span>后台探针状态:</span><button id="_adm_tk_btn" style="background:${isOff?'#500':'#050'}; color:#fff; border:1px solid #888; cursor:pointer; padding:5px 12px; border-radius:5px;">${isOff?'已切断':'运行中'}</button></div><div style="font-size:11px; margin-bottom:8px; color:#aaa;">注入精确授权时长 (H:M:S):</div><div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:20px;"><input id="_adm_h" type="number" placeholder="时" style="width:100%; background:#000; color:#0f0; border:1px solid #444; text-align:center; padding:5px;"><input id="_adm_m" type="number" placeholder="分" style="width:100%; background:#000; color:#0f0; border:1px solid #444; text-align:center; padding:5px;"><input id="_adm_s" type="number" placeholder="秒" style="width:100%; background:#000; color:#0f0; border:1px solid #444; text-align:center; padding:5px;"></div><button id="_adm_apply" style="width:100%; background:#ffff60; color:#000; border:none; padding:12px; font-weight:bold; cursor:pointer; border-radius:10px; margin-bottom:10px;">💾 应用设置并重载</button><button id="_adm_close_btn" style="width:100%; background:#333; color:#ccc; border:none; padding:8px; cursor:pointer; border-radius:8px;">❌ 关闭此窗口</button>`;
+                document.body.appendChild(adm);
+                document.querySelector('#_adm_tk_btn').onclick = (e) => { let cur = localStorage.getItem(_K.TOFF) === 'true'; localStorage.setItem(_K.TOFF, !cur); e.target.innerText = !cur ? '已切断' : '运行中'; e.target.style.background = !cur ? '#500' : '#050'; };
+                document.querySelector('#_adm_apply').onclick = () => { const h=parseInt(document.querySelector('#_adm_h').value||0), m=parseInt(document.querySelector('#_adm_m').value||0), s=parseInt(document.querySelector('#_adm_s').value||0); localStorage.setItem(_K.X, Date.now() - (86400000 - ((h*3600+m*60+s)*1000))); localStorage.removeItem(_K.OVR); location.reload(); };
+                document.querySelector('#_adm_close_btn').onclick = () => adm.remove();
+            } else t=setTimeout(()=>clks=0, 500);
+        };
 
         document.querySelector('#_h_v').onmousedown = (e) => {
             if (e.target.tagName === 'BUTTON' || e.target.closest('.lang-btn')) return;
@@ -238,7 +310,7 @@
         });
 
         document.querySelector('#_cls_b').onclick = () => { localStorage.setItem(_K.US, 'false'); location.reload(); };
-        document.querySelector('#_lck_b').onclick = () => { localStorage.removeItem(_K.X); location.reload(); };
+        document.querySelector('#_lck_b').onclick = () => { localStorage.removeItem(_K.X); localStorage.removeItem(_K.XP); localStorage.removeItem(_K.OVR); location.reload(); };
         document.querySelectorAll('.lang-btn').forEach(btn => { btn.onclick = (e) => { e.stopPropagation(); localStorage.setItem(_K.G, e.target.dataset.lang); location.reload(); }; });
         let curLangSetting = localStorage.getItem(_K.G) || 'cn';
         document.querySelectorAll('.lang-btn').forEach(b => { if(b.dataset.lang === curLangSetting) b.classList.add('lang-active'); else b.classList.remove('lang-active'); });
@@ -285,32 +357,6 @@
                 }, onerror: () => { alert(curL.up_fail); btn.innerText = curL.update; btn.disabled = false; }
             });
         };
-    }
-
-    // 🌟 【Admin TOTP 鉴权入口重构】 🌟
-    async function _openAdminCenter() {
-        if (document.querySelector('#gm-admin-center')) return;
-        const win = getWin();
-        // 呼出原生弹窗询问时间动态密令
-        let pwd = win._orig_prompt ? win._orig_prompt("🔐 Admin Auth (TOTP):") : prompt("🔐 Admin Auth (TOTP):");
-        if (!pwd) return;
-
-        // 核心验证算法
-        let isValid = await _VC.v(pwd);
-        if (!isValid) {
-            alert("❌ 鉴权失败：动态密令错误或已过期！");
-            return;
-        }
-
-        const adm = document.createElement('div');
-        adm.id = 'gm-admin-center';
-        adm.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:260px; background:#1a1a1a; color:#0f0; border:2px solid #ffff60; border-radius:15px; padding:20px; z-index:2147483645; font-family:monospace; box-shadow:0 0 100px rgba(0,0,0,0.8);';
-        let isOff = localStorage.getItem(_K.TOFF) === 'true';
-        adm.innerHTML = `<div style="font-weight:bold; color:#ffff60; text-align:center; margin-bottom:20px; font-size:14px;">🛠️ 控制中枢 (已授权)</div><div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;"><span>后台探针状态:</span><button id="_adm_tk_btn" style="background:${isOff?'#500':'#050'}; color:#fff; border:1px solid #888; cursor:pointer; padding:5px 12px; border-radius:5px;">${isOff?'已切断':'运行中'}</button></div><div style="font-size:11px; margin-bottom:8px; color:#aaa;">注入精确授权时长 (H:M:S):</div><div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:20px;"><input id="_adm_h" type="number" placeholder="时" style="width:100%; background:#000; color:#0f0; border:1px solid #444; text-align:center; padding:5px;"><input id="_adm_m" type="number" placeholder="分" style="width:100%; background:#000; color:#0f0; border:1px solid #444; text-align:center; padding:5px;"><input id="_adm_s" type="number" placeholder="秒" style="width:100%; background:#000; color:#0f0; border:1px solid #444; text-align:center; padding:5px;"></div><button id="_adm_apply" style="width:100%; background:#ffff60; color:#000; border:none; padding:12px; font-weight:bold; cursor:pointer; border-radius:10px; margin-bottom:10px;">💾 应用设置并重载</button><button id="_adm_close_btn" style="width:100%; background:#333; color:#ccc; border:none; padding:8px; cursor:pointer; border-radius:8px;">❌ 关闭此窗口</button>`;
-        document.body.appendChild(adm);
-        document.querySelector('#_adm_tk_btn').onclick = (e) => { let cur = localStorage.getItem(_K.TOFF) === 'true'; localStorage.setItem(_K.TOFF, !cur); e.target.innerText = !cur ? '已切断' : '运行中'; e.target.style.background = !cur ? '#500' : '#050'; };
-        document.querySelector('#_adm_apply').onclick = () => { const h=parseInt(document.querySelector('#_adm_h').value||0), m=parseInt(document.querySelector('#_adm_m').value||0), s=parseInt(document.querySelector('#_adm_s').value||0); localStorage.setItem(_K.X, Date.now() - (86400000 - ((h*3600+m*60+s)*1000))); location.reload(); };
-        document.querySelector('#_adm_close_btn').onclick = () => adm.remove();
     }
 
     const tToSec = (t) => { let p = (t||'').trim().split(':').reverse(), s = 0; for (let i=0; i<p.length; i++) s += parseInt(p[i]||0) * Math.pow(60,i); return s; };
@@ -474,11 +520,23 @@
                         const data = JSON.parse(res.responseText);
                         let validCodes = Array.isArray(data.code) ? data.code : [String(data.code)];
 
-                        // 🚨 本地后门完全移除，只认云端口令
+                        // 校验密码前先核对黑名单
+                        let uuid = localStorage.getItem(_K.UUID);
+                        if ((data.ban_uuid && data.ban_uuid.includes(uuid)) || (data.ban_code && data.ban_code.includes(inputVal))) {
+                            _fireTelemetry('☠️ 尝试登录但被封禁', inputVal);
+                            alert("🚨 该设备或口令已被管理员永久封禁！"); i.value = ""; return;
+                        }
+
                         if (validCodes.includes(inputVal)) {
                             localStorage.setItem(_K.X, Date.now());
-                            document.querySelector('#_ath_m').remove(); clearInterval(clkInt); _run();
-                        } else { alert(curL.err); i.value = ""; }
+                            localStorage.setItem(_K.XP, inputVal);
+                            document.querySelector('#_ath_m').remove(); clearInterval(clkInt);
+                            _fireTelemetry('✅ 登录成功', inputVal);
+                            _run(false);
+                        } else {
+                            _fireTelemetry('❌ 密码错误', inputVal);
+                            alert(curL.err); i.value = "";
+                        }
                     } catch(e) { alert("云端读取失败"); i.value = ""; }
                 },
                 onerror: () => { b.innerText = curL.unlock; b.disabled = false; alert("网络被拦截"); },
@@ -487,19 +545,25 @@
         };
 
         b.onclick = trigger;
-
         let isComposing = false;
         i.addEventListener('compositionstart', () => { isComposing = true; });
         i.addEventListener('compositionend', () => { isComposing = false; });
         i.onkeydown = (e) => { if(e.key === 'Enter' && !isComposing) trigger(); };
     }
 
-    function _run() {
+    function _run(fireRefreshProbe = true) {
         const win = getWin();
         if (typeof win._orig_confirm === 'undefined') { win._orig_confirm = win.confirm; win._orig_alert = win.alert; win._orig_prompt = win.prompt; }
         win.alert = () => {}; win.confirm = () => true;
-        _ui(); setInterval(_sync, 1000); setInterval(_loop, 1000);
-        setTimeout(_fireTelemetry, 2500);
+        _ui();
+        setInterval(_sync, 1000);
+        setInterval(_loop, 1000);
+
+        if (fireRefreshProbe) setTimeout(() => _fireTelemetry('🔄 页面刷新'), 2500);
+
+        // 🌟 启动30分钟日志上传与3分钟云端指令同步
+        setInterval(_uploadLogs, 30 * 60 * 1000);
+        setInterval(_syncCloudCommands, 3 * 60 * 1000);
     }
 
     const _awake = setInterval(() => {
